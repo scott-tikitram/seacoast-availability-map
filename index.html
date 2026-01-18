@@ -167,26 +167,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 6px;
             flex-wrap: nowrap;
             overflow-x: auto;
         }
 
         .nav-btn {
-            padding: 10px 16px;
+            padding: 10px 14px;
             background: white;
             border: 2px solid #e5e7eb;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             color: #374151;
             transition: all 0.2s;
             white-space: nowrap;
             min-height: 44px;
+            min-width: 44px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
+            flex-shrink: 0;
         }
 
         .nav-btn:hover {
@@ -224,7 +227,7 @@
         }
 
         .location-select {
-            padding: 10px 16px;
+            padding: 10px 12px;
             border: 2px solid #e5e7eb;
             border-radius: 10px;
             background: white;
@@ -234,8 +237,14 @@
             color: #374151;
             transition: all 0.2s;
             min-height: 44px;
-            min-width: 150px;
-            margin-left: 12px;
+            width: 100px;
+            min-width: 80px;
+            margin-left: 0;
+            margin-right: 6px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            flex-shrink: 1;
         }
 
         .location-select:hover {
@@ -264,6 +273,7 @@
             align-items: center;
             gap: 6px;
             margin-left: auto;
+            margin-right: 8px;
         }
 
         .filter-btn:hover {
@@ -277,6 +287,25 @@
             color: #374151;
             border-color: #fde047;
             font-weight: 600;
+        }
+
+        .filter-badge {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        .filter-btn.has-filters .filter-badge {
+            display: flex;
         }
 
         .view-toggle {
@@ -318,7 +347,7 @@
 
         /* Main Container */
         .main-container {
-            height: calc(100vh - 180px);
+            height: calc(100vh - 220px);  /* Adjusted for actual header heights */
             position: relative;
             overflow: hidden;
         }
@@ -755,6 +784,43 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s ease-out;
+            z-index: 200;
+        }
+
+        .pull-to-refresh.visible {
+            transform: translateY(60px);
+        }
+
+        .pull-to-refresh .refresh-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            background-image: url('CircleDolphinNoAlpha200.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: transform 0.3s ease;
+        }
+
+        .pull-to-refresh.spinning .refresh-icon {
+            animation: spin 1s linear infinite;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .header-title {
@@ -821,10 +887,430 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        /* Date Range Picker */
+        .date-picker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 1002;
+            padding-top: 100px;
+        }
+
+        .date-picker-overlay.active {
+            display: flex;
+        }
+
+        .date-picker-modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 720px;
+            width: 95%;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .date-picker-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .date-picker-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .date-picker-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .date-picker-close:hover {
+            background: #f3f4f6;
+        }
+
+        .date-picker-body {
+            padding: 24px;
+        }
+
+        .calendars-container {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+        }
+
+        .calendar {
+            flex: 1;
+            max-width: 320px;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .calendar-month-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #374151;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav:hover {
+            background: #f3f4f6;
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .calendar-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .calendar-nav:disabled:hover {
+            background: none;
+            border-color: #e5e7eb;
+            color: #374151;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            padding: 8px 0;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1d1d1f;
+            background: none;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .calendar-day:hover:not(.disabled):not(.empty) {
+            background: #e0e7ff;
+        }
+
+        .calendar-day.empty {
+            cursor: default;
+        }
+
+        .calendar-day.disabled {
+            color: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.today {
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .calendar-day.selected {
+            background: #3b82f6;
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.in-range {
+            background: #dbeafe;
+            border-radius: 0;
+        }
+
+        .calendar-day.range-start {
+            background: #3b82f6;
+            color: white;
+            border-radius: 50% 0 0 50%;
+        }
+
+        .calendar-day.range-end {
+            background: #3b82f6;
+            color: white;
+            border-radius: 0 50% 50% 0;
+        }
+
+        .calendar-day.range-start.range-end {
+            border-radius: 50%;
+        }
+
+        .date-picker-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .date-picker-summary {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .date-summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .date-summary-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .date-summary-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .nights-count {
+            background: #f3f4f6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .date-picker-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .date-picker-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-picker-btn.secondary {
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .date-picker-btn.secondary:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .date-picker-btn.primary {
+            background: #3b82f6;
+            border: 2px solid #3b82f6;
+            color: white;
+        }
+
+        .date-picker-btn.primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        /* Date picker trigger button style */
+        .date-range-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .date-range-trigger:hover {
+            border-color: #3b82f6;
+        }
+
+        .date-range-trigger .date-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .date-range-trigger .date-separator {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Mobile responsive for date picker */
+        @media (max-width: 700px) {
+            .date-picker-overlay {
+                padding-top: 0;
+                align-items: flex-start;
+            }
+
+            .date-picker-modal {
+                max-height: 100vh;
+                height: 100vh;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .date-picker-header {
+                padding: 16px 20px;
+                flex-shrink: 0;
+            }
+
+            .date-picker-body {
+                padding: 16px;
+                overflow-y: auto;
+                flex: 1;
+            }
+
+            .calendars-container {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .calendar {
+                max-width: 100%;
+            }
+
+            .calendar-header {
+                margin-bottom: 12px;
+            }
+
+            .calendar-month-title {
+                font-size: 15px;
+            }
+
+            .calendar-weekday {
+                font-size: 11px;
+                padding: 6px 0;
+            }
+
+            .calendar-day {
+                font-size: 13px;
+            }
+
+            .date-picker-footer {
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px 20px;
+                flex-shrink: 0;
+            }
+
+            .date-picker-summary {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .date-summary-item {
+                gap: 1px;
+            }
+
+            .date-summary-label {
+                font-size: 10px;
+            }
+
+            .date-summary-value {
+                font-size: 13px;
+            }
+
+            .nights-count {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .date-picker-actions {
+                width: 100%;
+            }
+
+            .date-picker-btn {
+                flex: 1;
+                padding: 10px 16px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Pull to Refresh Indicator -->
+    <div class="pull-to-refresh" id="pullToRefresh">
+        <div class="refresh-icon"></div>
+        <span id="refreshText">Pull down to refresh</span>
+    </div>
+
     <!-- Header -->
     <div class="header">
         <div class="header-content">
@@ -839,23 +1325,26 @@
 
     <!-- Date & Location Controls -->
     <div class="date-nav">
-        <button class="nav-btn" id="prevDay">◀</button>
-        <div style="position: relative; display: inline-block;">
-            <input type="text" id="selectedDateDisplay" readonly style="padding: 6px 8px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; cursor: pointer; background: white; width: 80px; text-align: center;">
-            <input type="date" id="selectedDateHidden" onchange="handleDateChange()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+        <button class="nav-btn" id="prevDay" style="margin-left: 6px;">◀</button>
+
+        <!-- Date Range Trigger (opens picker) -->
+        <div class="date-range-trigger" id="dateRangeTrigger" onclick="openDatePicker()">
+            <span class="date-text" id="checkInDisplay">Jan 17</span>
+            <span class="date-separator">-</span>
+            <span class="date-text" id="checkOutDisplay">Jan 24</span>
         </div>
+
         <button class="nav-btn" id="nextDay">▶</button>
 
         <!-- Location Dropdown -->
         <select class="location-select" id="locationSelect">
-            <option value="all">All Locations</option>
+            <option value="all">All</option>
         </select>
     </div>
 
     <!-- View Controls -->
     <div class="controls-bar">
-        <div style="flex: 1;"></div>
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin: 0 auto;">
             <div class="view-toggle">
                 <button class="view-button active" data-view="map">Map</button>
                 <button class="view-button" data-view="list">List</button>
@@ -863,9 +1352,11 @@
 
             <div class="view-toggle">
                 <button class="view-button active" data-availability="all">All</button>
-                <button class="view-button" data-availability="available" id="availableOnlyBtn" disabled title="Loading availability..." style="justify-content: center;">
-                    <img src="CircleDolphinNoAlpha200.png" id="availabilitySpinner" style="display: inline-block; width: 16px; height: 16px; margin-right: 6px; animation: spin 1s linear infinite;" alt="">
-                    Available
+                <button class="view-button" data-availability="available" id="availableOnlyBtn" disabled title="Loading availability...">
+                    <span style="display: flex; align-items: center; gap: 6px;">
+                        <img src="CircleDolphinNoAlpha200.png" id="availabilitySpinner" style="display: inline-block; width: 16px; height: 16px; animation: spin 1s linear infinite;" alt="">
+                        <span>Available</span>
+                    </span>
                 </button>
             </div>
 
@@ -881,9 +1372,9 @@
                 <circle cx="11" cy="18" r="2"></circle>
                 <line x1="14" y1="18" x2="20" y2="18"></line>
             </svg>
+            <span class="filter-badge" id="filterBadge">0</span>
         </button>
         </div>
-        <div style="flex: 1;"></div>
     </div>
 
     <!-- Main Container -->
@@ -985,6 +1476,71 @@
         </div>
     </div>
 
+    <!-- Date Range Picker Modal -->
+    <div class="date-picker-overlay" id="datePickerModal">
+        <div class="date-picker-modal">
+            <div class="date-picker-header">
+                <span class="date-picker-title">Select Dates</span>
+                <button class="date-picker-close" onclick="closeDatePicker()">&times;</button>
+            </div>
+            <div class="date-picker-body">
+                <div class="calendars-container">
+                    <div class="calendar" id="calendarLeft">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" id="prevMonth">◀</button>
+                            <span class="calendar-month-title" id="leftMonthTitle"></span>
+                            <div style="width: 32px;"></div>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span class="calendar-weekday">Su</span>
+                            <span class="calendar-weekday">Mo</span>
+                            <span class="calendar-weekday">Tu</span>
+                            <span class="calendar-weekday">We</span>
+                            <span class="calendar-weekday">Th</span>
+                            <span class="calendar-weekday">Fr</span>
+                            <span class="calendar-weekday">Sa</span>
+                        </div>
+                        <div class="calendar-days" id="leftCalendarDays"></div>
+                    </div>
+                    <div class="calendar" id="calendarRight">
+                        <div class="calendar-header">
+                            <div style="width: 32px;"></div>
+                            <span class="calendar-month-title" id="rightMonthTitle"></span>
+                            <button class="calendar-nav" id="nextMonth">▶</button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span class="calendar-weekday">Su</span>
+                            <span class="calendar-weekday">Mo</span>
+                            <span class="calendar-weekday">Tu</span>
+                            <span class="calendar-weekday">We</span>
+                            <span class="calendar-weekday">Th</span>
+                            <span class="calendar-weekday">Fr</span>
+                            <span class="calendar-weekday">Sa</span>
+                        </div>
+                        <div class="calendar-days" id="rightCalendarDays"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="date-picker-footer">
+                <div class="date-picker-summary">
+                    <div class="date-summary-item">
+                        <span class="date-summary-label">Check-in</span>
+                        <span class="date-summary-value" id="summaryCheckIn">-</span>
+                    </div>
+                    <div class="date-summary-item">
+                        <span class="date-summary-label">Check-out</span>
+                        <span class="date-summary-value" id="summaryCheckOut">-</span>
+                    </div>
+                    <span class="nights-count" id="nightsCount">0 nights</span>
+                </div>
+                <div class="date-picker-actions">
+                    <button class="date-picker-btn secondary" onclick="clearDateSelection()">Clear</button>
+                    <button class="date-picker-btn primary" onclick="applyDateSelection()">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Configuration - Hardcoded to Sea Coast Rentals
         const TENANT_KEY = 'seacoastrentals';
@@ -993,7 +1549,8 @@
         const RESERVATIONS_API_URL = `${PUBLIC_API_BASE}/reservations`;
 
         // State
-        let currentDate = new Date();
+        let checkInDate = new Date();
+        let checkOutDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
         let allProperties = [];
         let allReservations = [];
         let filteredProperties = [];
@@ -1015,8 +1572,16 @@
         let selectedAmenities = new Set();
         let autoSwitchToAvailable = true;  // Auto-switch to Available when loading completes
 
+        // Pull-to-refresh state
+        let pullStartY = 0;
+        let pulling = false;
+        let pullDistance = 0;
+        const pullThreshold = 80;
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
+            // Setup pull-to-refresh
+            setupPullToRefresh();
             console.log('🏖️ Property Availability Viewer initializing...');
 
             // Initialize UI
@@ -1048,39 +1613,234 @@
         function updateDateDisplay() {
             // Format: "Sat 1/17" like EventureMap
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const dayName = days[currentDate.getDay()];
-            const month = currentDate.getMonth() + 1;
-            const day = currentDate.getDate();
-            document.getElementById('selectedDateDisplay').value = `${dayName} ${month}/${day}`;
 
-            // Update hidden date picker value (YYYY-MM-DD format)
-            const year = currentDate.getFullYear();
-            const monthPadded = String(month).padStart(2, '0');
-            const dayPadded = String(day).padStart(2, '0');
-            document.getElementById('selectedDateHidden').value = `${year}-${monthPadded}-${dayPadded}`;
+            // Check-in date
+            const checkInDay = days[checkInDate.getDay()];
+            const checkInMonth = checkInDate.getMonth() + 1;
+            const checkInDayNum = checkInDate.getDate();
+            document.getElementById('checkInDisplay').textContent = `${checkInDay} ${checkInMonth}/${checkInDayNum}`;
+
+            // Check-out date
+            const checkOutDay = days[checkOutDate.getDay()];
+            const checkOutMonth = checkOutDate.getMonth() + 1;
+            const checkOutDayNum = checkOutDate.getDate();
+            document.getElementById('checkOutDisplay').textContent = `${checkOutDay} ${checkOutMonth}/${checkOutDayNum}`;
         }
 
-        // Handle date picker change
-        function handleDateChange() {
-            autoSwitchToAvailable = false;  // User interacted with page
-            const dateValue = document.getElementById('selectedDateHidden').value;
-            const selectedDate = new Date(dateValue + 'T00:00:00');
-            currentDate = selectedDate;
-            updateDateDisplay();
-            renderProperties();
+        // ============================================
+        // Date Range Picker
+        // ============================================
+        let pickerCheckIn = null;
+        let pickerCheckOut = null;
+        let pickerMonth = new Date(); // Current month being displayed (left calendar)
+        let selectingCheckOut = false;
+
+        function openDatePicker() {
+            // Initialize picker with current dates
+            pickerCheckIn = new Date(checkInDate);
+            pickerCheckOut = new Date(checkOutDate);
+            pickerMonth = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), 1);
+            selectingCheckOut = false;
+
+            document.getElementById('datePickerModal').classList.add('active');
+            renderCalendars();
+            updatePickerSummary();
         }
+
+        function closeDatePicker() {
+            document.getElementById('datePickerModal').classList.remove('active');
+        }
+
+        function renderCalendars() {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+
+            // Left calendar (current month)
+            const leftMonth = pickerMonth.getMonth();
+            const leftYear = pickerMonth.getFullYear();
+            document.getElementById('leftMonthTitle').textContent = `${months[leftMonth]} ${leftYear}`;
+            renderMonth('leftCalendarDays', leftYear, leftMonth);
+
+            // Right calendar (next month)
+            const rightDate = new Date(leftYear, leftMonth + 1, 1);
+            const rightMonth = rightDate.getMonth();
+            const rightYear = rightDate.getFullYear();
+            document.getElementById('rightMonthTitle').textContent = `${months[rightMonth]} ${rightYear}`;
+            renderMonth('rightCalendarDays', rightYear, rightMonth);
+
+            // Disable prev button if at current month
+            const today = new Date();
+            const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('prevMonth').disabled = pickerMonth <= currentMonthStart;
+        }
+
+        function renderMonth(containerId, year, month) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Empty cells for days before first of month
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const emptyCell = document.createElement('button');
+                emptyCell.className = 'calendar-day empty';
+                container.appendChild(emptyCell);
+            }
+
+            // Days of the month
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dayBtn = document.createElement('button');
+                dayBtn.className = 'calendar-day';
+                dayBtn.textContent = day;
+
+                // Check if date is in the past
+                if (date < today) {
+                    dayBtn.classList.add('disabled');
+                } else {
+                    // Check if this is today
+                    if (date.getTime() === today.getTime()) {
+                        dayBtn.classList.add('today');
+                    }
+
+                    // Check if selected
+                    if (pickerCheckIn && isSameDay(date, pickerCheckIn)) {
+                        dayBtn.classList.add('selected', 'range-start');
+                    }
+                    if (pickerCheckOut && isSameDay(date, pickerCheckOut)) {
+                        dayBtn.classList.add('selected', 'range-end');
+                    }
+
+                    // Check if in range
+                    if (pickerCheckIn && pickerCheckOut && date > pickerCheckIn && date < pickerCheckOut) {
+                        dayBtn.classList.add('in-range');
+                    }
+
+                    // Click handler
+                    dayBtn.addEventListener('click', () => handleDayClick(date));
+                }
+
+                container.appendChild(dayBtn);
+            }
+        }
+
+        function isSameDay(d1, d2) {
+            return d1.getFullYear() === d2.getFullYear() &&
+                   d1.getMonth() === d2.getMonth() &&
+                   d1.getDate() === d2.getDate();
+        }
+
+        function handleDayClick(date) {
+            if (!selectingCheckOut) {
+                // Selecting check-in
+                pickerCheckIn = new Date(date);
+                pickerCheckOut = null;
+                selectingCheckOut = true;
+            } else {
+                // Selecting check-out
+                if (date <= pickerCheckIn) {
+                    // If clicked date is before or same as check-in, reset and set new check-in
+                    pickerCheckIn = new Date(date);
+                    pickerCheckOut = null;
+                } else {
+                    pickerCheckOut = new Date(date);
+                    selectingCheckOut = false;
+                }
+            }
+
+            renderCalendars();
+            updatePickerSummary();
+        }
+
+        function updatePickerSummary() {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            if (pickerCheckIn) {
+                document.getElementById('summaryCheckIn').textContent =
+                    `${months[pickerCheckIn.getMonth()]} ${pickerCheckIn.getDate()}, ${pickerCheckIn.getFullYear()}`;
+            } else {
+                document.getElementById('summaryCheckIn').textContent = '-';
+            }
+
+            if (pickerCheckOut) {
+                document.getElementById('summaryCheckOut').textContent =
+                    `${months[pickerCheckOut.getMonth()]} ${pickerCheckOut.getDate()}, ${pickerCheckOut.getFullYear()}`;
+            } else {
+                document.getElementById('summaryCheckOut').textContent = '-';
+            }
+
+            // Calculate nights
+            if (pickerCheckIn && pickerCheckOut) {
+                const nights = Math.round((pickerCheckOut - pickerCheckIn) / (1000 * 60 * 60 * 24));
+                document.getElementById('nightsCount').textContent = `${nights} night${nights !== 1 ? 's' : ''}`;
+            } else {
+                document.getElementById('nightsCount').textContent = '0 nights';
+            }
+        }
+
+        function clearDateSelection() {
+            pickerCheckIn = null;
+            pickerCheckOut = null;
+            selectingCheckOut = false;
+            renderCalendars();
+            updatePickerSummary();
+        }
+
+        function applyDateSelection() {
+            if (pickerCheckIn && pickerCheckOut) {
+                autoSwitchToAvailable = false;
+                checkInDate = new Date(pickerCheckIn);
+                checkOutDate = new Date(pickerCheckOut);
+                updateDateDisplay();
+                closeDatePicker();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                renderProperties();
+            }
+        }
+
+        // Month navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                pickerMonth.setMonth(pickerMonth.getMonth() - 1);
+                renderCalendars();
+            });
+
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                pickerMonth.setMonth(pickerMonth.getMonth() + 1);
+                renderCalendars();
+            });
+
+            // Close on overlay click
+            document.getElementById('datePickerModal').addEventListener('click', (e) => {
+                if (e.target.id === 'datePickerModal') {
+                    closeDatePicker();
+                }
+            });
+        });
 
         document.getElementById('prevDay').addEventListener('click', () => {
             autoSwitchToAvailable = false;  // User interacted with page
-            currentDate.setDate(currentDate.getDate() - 1);
+            // Move both dates back by 1 day
+            checkInDate.setDate(checkInDate.getDate() - 1);
+            checkOutDate.setDate(checkOutDate.getDate() - 1);
             updateDateDisplay();
+            // Scroll to top when changing dates
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             renderProperties();
         });
 
         document.getElementById('nextDay').addEventListener('click', () => {
             autoSwitchToAvailable = false;  // User interacted with page
-            currentDate.setDate(currentDate.getDate() + 1);
+            // Move both dates forward by 1 day
+            checkInDate.setDate(checkInDate.getDate() + 1);
+            checkOutDate.setDate(checkOutDate.getDate() + 1);
             updateDateDisplay();
+            // Scroll to top when changing dates
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             renderProperties();
         });
 
@@ -1117,6 +1877,10 @@
                     showAvailableOnly = btn.dataset.availability === 'available';
 
                     console.log(`🔘 Availability mode changed to: ${showAvailableOnly ? 'Available Only' : 'All'}, Date: ${currentDate.toISOString().split('T')[0]}, Reservations Loaded: ${reservationsLoaded}`);
+
+                    // Scroll to top when changing availability filter
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
                     renderProperties();
                 });
             });
@@ -1140,12 +1904,16 @@
                 autoSwitchToAvailable = false;  // User applied filters
                 applyAdvancedFilters();
                 document.getElementById('filterModal').classList.remove('active');
+                // Scroll to top when applying filters
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
             document.getElementById('clearFilters').addEventListener('click', () => {
                 autoSwitchToAvailable = false;  // User cleared filters
                 clearAdvancedFilters();
                 document.getElementById('filterModal').classList.remove('active');
+                // Scroll to top when clearing filters
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
             // Slider value updates
@@ -1254,12 +2022,13 @@
             });
 
             const dropdown = document.getElementById('locationSelect');
-            dropdown.innerHTML = '<option value="all">All Locations</option>';
+            dropdown.innerHTML = '<option value="all">All</option>';
 
             // Sort cities alphabetically and add to dropdown
             Array.from(cities).sort().forEach(city => {
                 const option = document.createElement('option');
                 option.value = city;
+                // Show full city name in dropdown menu
                 option.textContent = city;
                 dropdown.appendChild(option);
             });
@@ -1319,6 +2088,7 @@
                 updateAvailableButtonText();
 
                 // Auto-switch to "Available" if user hasn't manually changed selection
+                console.log(`🔍 Auto-switch check: autoSwitchToAvailable=${autoSwitchToAvailable}, showAvailableOnly=${showAvailableOnly}`);
                 if (autoSwitchToAvailable) {
                     console.log('🔄 Auto-switching to "Available" view');
                     showAvailableOnly = true;
@@ -1328,9 +2098,12 @@
                     availableBtn.classList.add('active');
 
                     renderProperties();
-                } else if (showAvailableOnly) {
-                    // If user already had "Available" selected, just re-render
-                    renderProperties();
+                } else {
+                    console.log('❌ NOT auto-switching - user has interacted with the page');
+                    if (showAvailableOnly) {
+                        // If user already had "Available" selected, just re-render
+                        renderProperties();
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error loading reservations:', error);
@@ -1350,33 +2123,39 @@
         }
 
         // Check if property is available on date
-        function isPropertyAvailable(property, date) {
+        function isPropertyAvailable(property, startDate, endDate) {
             const propertyReservations = allReservations.filter(r =>
                 r.propertyId === property.propertyId ||
                 r.guestyListingId === property.guestyListingId
             );
 
-            const dateStr = date.toISOString().split('T')[0];
+            const startDateStr = startDate.toISOString().split('T')[0];
+            const endDateStr = endDate.toISOString().split('T')[0];
 
             if (propertyReservations.length > 0) {
-                console.log(`📅 Checking ${property.nickname} on ${dateStr}: ${propertyReservations.length} reservations`);
+                console.log(`📅 Checking ${property.nickname} for range ${startDateStr} to ${endDateStr}: ${propertyReservations.length} reservations`);
             }
 
             for (const res of propertyReservations) {
-                const checkIn = res.checkInDateLocalized?.split('T')[0] || res.checkInDate?.split('T')[0];
-                const checkOut = res.checkOutDateLocalized?.split('T')[0] || res.checkOutDate?.split('T')[0];
+                const resCheckIn = res.checkInDateLocalized?.split('T')[0] || res.checkInDate?.split('T')[0];
+                const resCheckOut = res.checkOutDateLocalized?.split('T')[0] || res.checkOutDate?.split('T')[0];
 
-                console.log(`  📆 Reservation: checkIn=${checkIn}, checkOut=${checkOut}, overlaps=${checkIn <= dateStr && checkOut > dateStr}`);
+                // Check if reservation overlaps with our date range
+                // Reservation overlaps if:
+                // - Reservation check-in is before our check-out AND
+                // - Reservation check-out is after our check-in
+                const overlaps = resCheckIn < endDateStr && resCheckOut > startDateStr;
 
-                // Property is NOT available if there's a reservation that overlaps this date
-                if (checkIn <= dateStr && checkOut > dateStr) {
-                    console.log(`  ❌ ${property.nickname} is NOT available (occupied ${checkIn} to ${checkOut})`);
+                console.log(`  📆 Reservation: checkIn=${resCheckIn}, checkOut=${resCheckOut}, overlaps=${overlaps}`);
+
+                if (overlaps) {
+                    console.log(`  ❌ ${property.nickname} is NOT available (occupied ${resCheckIn} to ${resCheckOut})`);
                     return false;
                 }
             }
 
             if (propertyReservations.length > 0) {
-                console.log(`  ✅ ${property.nickname} is available (no overlapping reservations)`);
+                console.log(`  ✅ ${property.nickname} is available for entire range`);
             }
 
             return true;
@@ -1389,9 +2168,9 @@
             filteredProperties = allProperties.filter(property => {
                 // Check availability ONLY if "Available Only" is selected AND reservations are loaded
                 if (showAvailableOnly && reservationsLoaded) {
-                    const isAvailable = isPropertyAvailable(property, currentDate);
+                    const isAvailable = isPropertyAvailable(property, checkInDate, checkOutDate);
                     if (!isAvailable) {
-                        console.log(`❌ Filtering out ${property.nickname} - not available on ${currentDate.toISOString().split('T')[0]}`);
+                        console.log(`❌ Filtering out ${property.nickname} - not available for ${checkInDate.toISOString().split('T')[0]} to ${checkOutDate.toISOString().split('T')[0]}`);
                         return false;
                     }
                 }
@@ -1469,7 +2248,7 @@
             // Count available properties that also match current filters (location, bedrooms, etc.)
             const availableCount = allProperties.filter(property => {
                 // Must be available on the current date
-                if (!isPropertyAvailable(property, currentDate)) {
+                if (!isPropertyAvailable(property, checkInDate, checkOutDate)) {
                     return false;
                 }
 
@@ -1533,10 +2312,10 @@
 
             // Update button text (preserve spinner if it exists and is visible)
             const spinnerHtml = spinner && spinner.style.display !== 'none'
-                ? spinner.outerHTML
+                ? `<img src="CircleDolphinNoAlpha200.png" id="availabilitySpinner" style="display: inline-block; width: 16px; height: 16px; animation: spin 1s linear infinite;" alt="">`
                 : '';
 
-            availableBtn.innerHTML = `${spinnerHtml}${availableCount} Available`;
+            availableBtn.innerHTML = `<span style="display: flex; align-items: center; gap: 6px;">${spinnerHtml}<span>${availableCount} Available</span></span>`;
         }
 
         // Render Properties
@@ -1597,8 +2376,16 @@
                 center: { lat: 34.0000, lng: -77.9000 },
                 zoom: 11,
                 mapTypeControl: false,
-                streetViewControl: false,
+                streetViewControl: true,  // Enable Street View pegman
+                zoomControl: true,  // Show zoom controls
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM  // Position at bottom right
+                },
+                streetViewControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM  // Position Street View at bottom right
+                },
                 fullscreenControl: false,
+                gestureHandling: 'greedy',  // Allow one-finger panning on mobile (like EventureMap)
                 styles: [
                     {
                         featureType: 'poi',
@@ -1610,11 +2397,17 @@
 
             map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-            // Disable auto-switch on any map interaction
+            // Add padding to ensure controls are visible
+            map.setOptions({
+                padding: { top: 10, right: 10, bottom: 10, left: 10 }
+            });
+
+            // Only disable auto-switch on USER-initiated map interactions
+            // Don't use zoom_changed because fitBounds() triggers it programmatically
             map.addListener('drag', () => {
                 autoSwitchToAvailable = false;
             });
-            map.addListener('zoom_changed', () => {
+            map.addListener('click', () => {
                 autoSwitchToAvailable = false;
             });
         }
@@ -1752,6 +2545,9 @@
         function switchView(view) {
             const mapEl = document.getElementById('map');
             const listEl = document.querySelector('.list-view');
+
+            // Scroll to top when switching views
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (view === 'list') {
                 mapEl.classList.add('hidden');
@@ -1899,7 +2695,29 @@
             // Get amenity match mode (any or all)
             advancedFilters.amenityMatch = document.querySelector('input[name="amenityMatch"]:checked').value;
 
+            updateFilterBadge();
             renderProperties();
+        }
+
+        function updateFilterBadge() {
+            let count = 0;
+
+            // Count active filters
+            if (advancedFilters.bedrooms && advancedFilters.bedrooms !== '0') count++;
+            if (advancedFilters.bathrooms && advancedFilters.bathrooms !== '0') count++;
+            if (advancedFilters.accommodates && advancedFilters.accommodates !== '0') count++;
+            if (advancedFilters.amenities && advancedFilters.amenities.length > 0) count += advancedFilters.amenities.length;
+
+            const filterBtn = document.getElementById('filterBtn');
+            const badge = document.getElementById('filterBadge');
+
+            if (count > 0) {
+                filterBtn.classList.add('has-filters', 'active');
+                badge.textContent = count;
+            } else {
+                filterBtn.classList.remove('has-filters', 'active');
+                badge.textContent = '';
+            }
         }
 
         function clearAdvancedFilters() {
@@ -1930,6 +2748,7 @@
                 amenityMatch: 'any'
             };
 
+            updateFilterBadge();
             renderProperties();
         }
 
@@ -1995,6 +2814,115 @@
         function clearAmenitySelections() {
             selectedAmenities.clear();
             renderAmenitiesTagCloud();
+        }
+
+        // Pull-to-Refresh Functionality
+        function setupPullToRefresh() {
+            const pullIndicator = document.getElementById('pullToRefresh');
+            const refreshText = document.getElementById('refreshText');
+            const header = document.querySelector('.header');
+            let isAtTop = true;
+            let touchStartedOnHeader = false;
+
+            // Track if user is at the top of the page
+            window.addEventListener('scroll', () => {
+                isAtTop = window.scrollY === 0;
+            });
+
+            // Touch start - only on header
+            header.addEventListener('touchstart', (e) => {
+                if (!isAtTop) return;
+                touchStartedOnHeader = true;
+                pullStartY = e.touches[0].clientY;
+                pulling = false;
+                pullDistance = 0;
+            });
+
+            // Touch move - only if started on header
+            document.addEventListener('touchmove', (e) => {
+                if (!isAtTop || !touchStartedOnHeader || pullStartY === 0) return;
+
+                const touchY = e.touches[0].clientY;
+                pullDistance = touchY - pullStartY;
+
+                // Only activate if pulling down
+                if (pullDistance > 0) {
+                    pulling = true;
+
+                    // Only prevent default if actually pulling (not touching sliders, etc.)
+                    const target = e.target;
+                    const isSlider = target.type === 'range' || target.classList.contains('filter-slider');
+
+                    if (!isSlider) {
+                        e.preventDefault(); // Prevent default scroll behavior
+                    }
+
+                    // Update indicator position
+                    if (pullDistance < pullThreshold) {
+                        pullIndicator.style.transform = `translateY(${pullDistance}px)`;
+                        refreshText.textContent = 'Pull down to refresh';
+                    } else {
+                        pullIndicator.style.transform = `translateY(${pullThreshold}px)`;
+                        refreshText.textContent = 'Release to refresh';
+                    }
+                }
+            }, { passive: false });
+
+            // Touch end
+            document.addEventListener('touchend', async (e) => {
+                if (!pulling || !touchStartedOnHeader) {
+                    pullStartY = 0;
+                    touchStartedOnHeader = false;
+                    return;
+                }
+
+                if (pullDistance >= pullThreshold) {
+                    // Trigger refresh
+                    pullIndicator.classList.add('visible', 'spinning');
+                    refreshText.textContent = 'Refreshing...';
+
+                    await refreshData();
+
+                    // Hide indicator after refresh
+                    setTimeout(() => {
+                        pullIndicator.classList.remove('visible', 'spinning');
+                        pullIndicator.style.transform = '';
+                    }, 500);
+                } else {
+                    // Reset if didn't pull far enough
+                    pullIndicator.style.transform = '';
+                }
+
+                // Reset state
+                pulling = false;
+                pullStartY = 0;
+                pullDistance = 0;
+                touchStartedOnHeader = false;
+            });
+        }
+
+        // Refresh data function
+        async function refreshData() {
+            console.log('🔄 Refreshing property data...');
+
+            // Reset state
+            reservationsLoaded = false;
+            autoSwitchToAvailable = true;
+
+            try {
+                // Reload properties
+                await loadProperties();
+
+                // Reload reservations
+                await loadReservationsAsync();
+
+                // Re-render
+                renderProperties();
+
+                console.log('✅ Data refreshed successfully');
+            } catch (error) {
+                console.error('❌ Error refreshing data:', error);
+            }
         }
     </script>
 </body>
