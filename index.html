@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sea Coast Rentals - Available Properties</title>
+    <link rel="icon" type="image/png" href="CircleDolphinNoAlpha200.png">
+    <link rel="apple-touch-icon" href="CircleDolphinNoAlpha200.png">
+
+    <!--
+    Property Availability Viewer v1.1.0
+
+    @version 1.1.0
+    @created 2026-01-16
+    @updated 2026-01-17
+    @author Shuttle Works Development
+
+    @description
+    Public-facing property availability viewer for Sea Coast Rentals.
+    Fast, smooth UI based on vendor-deal-viewer architecture.
+    Browse available vacation rental properties by date with rich filtering.
+
+    @features
+    - Date browsing (previous/next day navigation)
+    - Real-time availability status (only shows AVAILABLE properties)
+    - Location filter (quick filter visible on main UI)
+    - Advanced filters (amenities, bedrooms, bathrooms, etc.) in modal dialog
+    - Map view with property markers
+    - List view with property cards
+    - Property details popup with marketing description and booking link
+    - Mobile-responsive design
+    - Fast, smooth scrolling and interactions
+
+    @api
+    - NOTE: This version requires a PUBLIC API endpoint that only returns
+      non-sensitive property information (public descriptions, images, booking links)
+    - FUTURE: Should integrate with Guesty public booking API or website scraper
+    - CURRENT: Uses property-management-api with fields='public' filter
+
+    @public
+    - No authentication required
+    - Shows only publicly bookable properties
+    - Only displays public information (no owner data, pricing details, etc.)
+    - Limited to Sea Coast Rentals tenant (seacoastrentals)
+
+    @deployment
+    - This page should be deployed to a separate public website
+    - NOT part of app.seacoastrentals.com (admin dashboard)
+    - Could be: availability.seacoastrentals.com or similar
+    - Requires CORS configuration on API endpoints for public domain
+
+    @todo
+    - [ ] Implement 'public' fields filter in property-management-api
+    - [ ] Create public availability API (no sensitive reservation data)
+    - [ ] Consider Guesty public booking API integration
+    - [ ] Deploy to separate Amplify app for public access
+    - [ ] Configure CORS for public domain
+
+    @changelog
+    v1.1.0 (2026-01-17)
+    - UPDATED: Matched EventureMap design with ◀/▶ date navigation
+    - UPDATED: Location filter now uses dropdown instead of chips
+    - UPDATED: Filter button uses EventureMap's SVG icon
+    - UPDATED: Date format changed to "Sat 1/17" (short format)
+    - UPDATED: All controls styled to match EventureMap (border-radius, padding, colors)
+    - UPDATED: View toggle buttons segmented control style
+    - FIXED: Removed CORS-triggering x-api-key header (uses only X-Company-Key)
+    - IMPROVED: Mobile responsive design for dropdown and controls
+
+    v1.0.0 (2026-01-16)
+    - CREATED: Initial public property availability viewer
+    - BASED ON: vendor-deal-viewer.html architecture
+    - SIMILAR TO: reservations.html availability logic
+    - FEATURE: Date navigation with availability status
+    - FEATURE: Location-based filtering with advanced filter modal
+    - FEATURE: Map and List view modes
+    - FEATURE: Property details with booking links
+    - PUBLIC: No authentication required - direct API calls
+    - PUBLIC: Self-contained JavaScript - no SharedAPI dependency
+    - PUBLIC: Only shows available properties (no occupied/owner data)
+    -->
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Sea Coast Rentals - Available Properties">
+    <meta name="description" content="Browse available vacation rental properties at Sea Coast Rentals. Find your perfect beach getaway in Kure Beach, Carolina Beach, and Wilmington NC.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Sea Coast Rentals - Available Properties">
+    <meta property="og:description" content="Browse available vacation rental properties at Sea Coast Rentals.">
+    <meta property="og:image" content="https://app.seacoastrentals.com/seacoastrentalslogo.png">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="CircleDolphinNoAlpha200.png" type="image/png">
+
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbR4eSoIOrobZVfs8_qOpGv1cpDvSuBLE&libraries=places"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo img {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: white;
+            padding: 4px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Date Navigation */
+        .date-nav {
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: #f9fafb;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+
+        .date-display {
+            padding: 6px 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            min-width: 80px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Controls Bar */
+        .controls-bar {
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .location-select {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+            min-height: 44px;
+            min-width: 150px;
+            margin-left: 12px;
+        }
+
+        .location-select:hover {
+            border-color: #3b82f6;
+        }
+
+        .location-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-btn {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .filter-btn:hover {
+            background: #f9fafb;
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .filter-btn.active {
+            background: #fef3c7;
+            color: #374151;
+            border-color: #fde047;
+            font-weight: 600;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .view-button {
+            padding: 10px 20px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .view-button:not(:last-child) {
+            border-right: 2px solid #e5e7eb;
+        }
+
+        .view-button.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .view-button:hover:not(.active) {
+            background: #f9fafb;
+            color: #3b82f6;
+        }
+
+        /* Main Container */
+        .main-container {
+            height: calc(100vh - 180px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Map View */
+        #map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Map Loading Overlay */
+        .map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .map-loading-overlay.hidden {
+            display: none;
+        }
+
+        .map-loading-spinner {
+            width: 64px;
+            height: 64px;
+            background-image: url('CircleDolphinNoAlpha200.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        .map-loading-text {
+            color: #6b7280;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* List View */
+        .list-view {
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Property Card */
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .property-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #e5e7eb;
+        }
+
+        .property-content {
+            padding: 16px;
+        }
+
+        .property-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+
+        .property-location {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .property-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .availability-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Filter Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            max-height: 80vh;
+            width: 90%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .filter-group {
+            margin-bottom: 24px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            color: #1d1d1f;
+        }
+
+        .filter-label span {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .filter-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: 8px;
+        }
+
+        .filter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .filter-slider::-webkit-slider-thumb:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .filter-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .filter-slider::-moz-range-thumb:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .filter-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .filter-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-checkbox-item input {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Amenity Pills */
+        .amenity-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .amenity-tag:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        .amenity-tag.selected {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+        }
+
+        .amenities-loading {
+            color: #6b7280;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Property Details Modal */
+        .property-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .property-modal.active {
+            display: flex;
+        }
+
+        .property-modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            width: 90%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .property-modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: #e5e7eb;
+        }
+
+        .property-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .property-modal-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .property-modal-description {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+
+        .property-modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-book {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-book:hover {
+            background: #2563eb;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            background-image: url('CircleDolphinNoAlpha200.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 16px;
+            }
+
+            .header-subtitle {
+                display: none;
+            }
+
+            .property-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .date-nav {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding: 12px 10px;
+            }
+
+            .location-select {
+                min-width: 120px;
+                flex: 1 1 auto;
+            }
+
+            .filter-btn {
+                flex: 1 1 auto;
+            }
+
+            .view-toggle {
+                width: 100%;
+            }
+
+            .view-button {
+                flex: 1;
+            }
+        }
+
+        /* Hide elements by default */
+        .list-view {
+            display: none;
+        }
+
+        .list-view.active {
+            display: block;
+        }
+
+        #map {
+            display: block;
+        }
+
+        #map.hidden {
+            display: none;
+        }
+
+        /* Spinner animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Disabled button state */
+        .view-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-logo">
+                <img src="seacoastrentalslogo.png" alt="Sea Coast Rentals">
+                <div>
+                    <div class="header-title">Sea Coast Rentals Availability Map</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date & Location Controls -->
+    <div class="date-nav">
+        <button class="nav-btn" id="prevDay">◀</button>
+        <div style="position: relative; display: inline-block;">
+            <input type="text" id="selectedDateDisplay" readonly style="padding: 6px 8px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; cursor: pointer; background: white; width: 80px; text-align: center;">
+            <input type="date" id="selectedDateHidden" onchange="handleDateChange()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+        </div>
+        <button class="nav-btn" id="nextDay">▶</button>
+
+        <!-- Location Dropdown -->
+        <select class="location-select" id="locationSelect">
+            <option value="all">All Locations</option>
+        </select>
+    </div>
+
+    <!-- View Controls -->
+    <div class="controls-bar">
+        <div style="flex: 1;"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="view-toggle">
+                <button class="view-button active" data-view="map">Map</button>
+                <button class="view-button" data-view="list">List</button>
+            </div>
+
+            <div class="view-toggle">
+                <button class="view-button active" data-availability="all">All</button>
+                <button class="view-button" data-availability="available" id="availableOnlyBtn" disabled title="Loading availability..." style="justify-content: center;">
+                    <img src="CircleDolphinNoAlpha200.png" id="availabilitySpinner" style="display: inline-block; width: 16px; height: 16px; margin-right: 6px; animation: spin 1s linear infinite;" alt="">
+                    Available
+                </button>
+            </div>
+
+            <button class="filter-btn" id="filterBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="6" x2="8" y2="6"></line>
+                <circle cx="11" cy="6" r="2"></circle>
+                <line x1="14" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="14" y2="12"></line>
+                <circle cx="17" cy="12" r="2"></circle>
+                <line x1="20" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="18" x2="8" y2="18"></line>
+                <circle cx="11" cy="18" r="2"></circle>
+                <line x1="14" y1="18" x2="20" y2="18"></line>
+            </svg>
+        </button>
+        </div>
+        <div style="flex: 1;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Map View -->
+        <div id="map">
+            <div class="map-loading-overlay" id="mapLoadingOverlay">
+                <div class="map-loading-spinner"></div>
+                <div class="map-loading-text">Loading properties...</div>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div class="list-view">
+            <div class="property-grid" id="propertyGrid">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal-overlay" id="filterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Filter Properties</h2>
+                <button class="modal-close" id="closeFilterModal">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Bedrooms -->
+                <div class="filter-group">
+                    <label class="filter-label">Bedrooms: <span id="bedroomsValue">Any</span></label>
+                    <input type="range" class="filter-slider" id="filterBedrooms" min="0" max="6" value="0" step="1">
+                    <div class="slider-labels">
+                        <span>Any</span>
+                        <span>6+</span>
+                    </div>
+                </div>
+
+                <!-- Bathrooms -->
+                <div class="filter-group">
+                    <label class="filter-label">Bathrooms: <span id="bathroomsValue">Any</span></label>
+                    <input type="range" class="filter-slider" id="filterBathrooms" min="0" max="4" value="0" step="0.5">
+                    <div class="slider-labels">
+                        <span>Any</span>
+                        <span>4+</span>
+                    </div>
+                </div>
+
+                <!-- Accommodates -->
+                <div class="filter-group">
+                    <label class="filter-label">Sleeps: <span id="accommodatesValue">Any</span></label>
+                    <input type="range" class="filter-slider" id="filterAccommodates" min="0" max="16" value="0" step="2">
+                    <div class="slider-labels">
+                        <span>Any</span>
+                        <span>16+</span>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="filter-group">
+                    <label class="filter-label">Amenities</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
+                            <input type="radio" name="amenityMatch" value="any" checked id="amenityMatchAny">
+                            <span>Match Any</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
+                            <input type="radio" name="amenityMatch" value="all" id="amenityMatchAll">
+                            <span>Match All</span>
+                        </label>
+                    </div>
+                    <div id="amenitiesTagCloud" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                        <div style="color: #6b7280; font-size: 14px;">Loading amenities...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="clearFilters">Clear All</button>
+                <button class="btn-primary" id="applyFilters">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Property Details Modal -->
+    <div class="property-modal" id="propertyModal">
+        <div class="property-modal-content">
+            <img class="property-modal-image" id="propertyModalImage" src="" alt="">
+            <div class="property-modal-body">
+                <h2 class="property-modal-name" id="propertyModalName"></h2>
+                <div class="property-modal-description" id="propertyModalDescription"></div>
+                <div id="propertyModalDetails"></div>
+            </div>
+            <div class="property-modal-footer">
+                <button class="btn-secondary" onclick="closePropertyModal()">Close</button>
+                <a class="btn-book" id="propertyModalBookBtn" href="#" target="_blank">Book Now</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Hardcoded to Sea Coast Rentals
+        const TENANT_KEY = 'seacoastrentals';
+        const PUBLIC_API_BASE = 'https://ew3sgfqhqei7uu5zjheee2dpza0qudnz.lambda-url.us-east-1.on.aws';
+        const PROPERTY_API_URL = `${PUBLIC_API_BASE}/properties`;
+        const RESERVATIONS_API_URL = `${PUBLIC_API_BASE}/reservations`;
+
+        // State
+        let currentDate = new Date();
+        let allProperties = [];
+        let allReservations = [];
+        let filteredProperties = [];
+        let selectedLocation = 'all';
+        let advancedFilters = {
+            bedrooms: '',
+            bathrooms: '',
+            accommodates: '',
+            amenities: [],
+            amenityMatch: 'any'
+        };
+        let map = null;
+        let markers = [];
+        let currentView = 'map';
+        let showAvailableOnly = false;  // Start with "All" properties
+        let reservationsLoaded = false;
+        let amenitiesLoaded = false;
+        let availableAmenities = [];
+        let selectedAmenities = new Set();
+        let autoSwitchToAvailable = true;  // Auto-switch to Available when loading completes
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🏖️ Property Availability Viewer initializing...');
+
+            // Initialize UI
+            updateDateDisplay();
+            initializeEventListeners();
+
+            // Load properties FIRST - show map immediately
+            await loadProperties();
+
+            console.log(`✅ Properties loaded, showing map with all properties`);
+
+            // Initialize map with ALL properties
+            initializeMap();
+
+            // Render initial view (all properties)
+            renderProperties();
+
+            // Hide map loading overlay after map is initialized
+            const mapLoadingOverlay = document.getElementById('mapLoadingOverlay');
+            if (mapLoadingOverlay) {
+                mapLoadingOverlay.classList.add('hidden');
+            }
+
+            // Load reservations in background
+            loadReservationsAsync();
+        });
+
+        // Date Navigation
+        function updateDateDisplay() {
+            // Format: "Sat 1/17" like EventureMap
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayName = days[currentDate.getDay()];
+            const month = currentDate.getMonth() + 1;
+            const day = currentDate.getDate();
+            document.getElementById('selectedDateDisplay').value = `${dayName} ${month}/${day}`;
+
+            // Update hidden date picker value (YYYY-MM-DD format)
+            const year = currentDate.getFullYear();
+            const monthPadded = String(month).padStart(2, '0');
+            const dayPadded = String(day).padStart(2, '0');
+            document.getElementById('selectedDateHidden').value = `${year}-${monthPadded}-${dayPadded}`;
+        }
+
+        // Handle date picker change
+        function handleDateChange() {
+            autoSwitchToAvailable = false;  // User interacted with page
+            const dateValue = document.getElementById('selectedDateHidden').value;
+            const selectedDate = new Date(dateValue + 'T00:00:00');
+            currentDate = selectedDate;
+            updateDateDisplay();
+            renderProperties();
+        }
+
+        document.getElementById('prevDay').addEventListener('click', () => {
+            autoSwitchToAvailable = false;  // User interacted with page
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDateDisplay();
+            renderProperties();
+        });
+
+        document.getElementById('nextDay').addEventListener('click', () => {
+            autoSwitchToAvailable = false;  // User interacted with page
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateDateDisplay();
+            renderProperties();
+        });
+
+        // Event Listeners
+        function initializeEventListeners() {
+            // Location dropdown
+            document.getElementById('locationSelect').addEventListener('change', (e) => {
+                autoSwitchToAvailable = false;  // User interacted with page
+                selectedLocation = e.target.value;
+                renderProperties();
+            });
+
+            // View toggle
+            document.querySelectorAll('[data-view]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    autoSwitchToAvailable = false;  // User interacted with page
+                    document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentView = btn.dataset.view;
+                    switchView(currentView);
+                });
+            });
+
+            // Availability toggle
+            document.querySelectorAll('[data-availability]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.disabled) return;
+
+                    // User manually changed selection, disable auto-switch
+                    autoSwitchToAvailable = false;
+
+                    document.querySelectorAll('[data-availability]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    showAvailableOnly = btn.dataset.availability === 'available';
+
+                    console.log(`🔘 Availability mode changed to: ${showAvailableOnly ? 'Available Only' : 'All'}, Date: ${currentDate.toISOString().split('T')[0]}, Reservations Loaded: ${reservationsLoaded}`);
+                    renderProperties();
+                });
+            });
+
+            // Filter modal
+            document.getElementById('filterBtn').addEventListener('click', () => {
+                autoSwitchToAvailable = false;  // User interacted with page
+                document.getElementById('filterModal').classList.add('active');
+
+                // Load amenities if not already loaded
+                if (!amenitiesLoaded) {
+                    loadAmenitiesTagCloud();
+                }
+            });
+
+            document.getElementById('closeFilterModal').addEventListener('click', () => {
+                document.getElementById('filterModal').classList.remove('active');
+            });
+
+            document.getElementById('applyFilters').addEventListener('click', () => {
+                autoSwitchToAvailable = false;  // User applied filters
+                applyAdvancedFilters();
+                document.getElementById('filterModal').classList.remove('active');
+            });
+
+            document.getElementById('clearFilters').addEventListener('click', () => {
+                autoSwitchToAvailable = false;  // User cleared filters
+                clearAdvancedFilters();
+                document.getElementById('filterModal').classList.remove('active');
+            });
+
+            // Slider value updates
+            document.getElementById('filterBedrooms').addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                document.getElementById('bedroomsValue').textContent = value === 0 ? 'Any' : `${value}+`;
+            });
+
+            document.getElementById('filterBathrooms').addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                document.getElementById('bathroomsValue').textContent = value === 0 ? 'Any' : `${value}+`;
+            });
+
+            document.getElementById('filterAccommodates').addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                document.getElementById('accommodatesValue').textContent = value === 0 ? 'Any' : `${value}+`;
+            });
+
+            // Close modal on overlay click
+            document.getElementById('filterModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('filterModal')) {
+                    document.getElementById('filterModal').classList.remove('active');
+                }
+            });
+
+            document.getElementById('propertyModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('propertyModal')) {
+                    closePropertyModal();
+                }
+            });
+        }
+
+        // Retry helper with exponential backoff (same pattern as EventureMap)
+        async function fetchWithRetry(url, options = {}, maxRetries = 3) {
+            let lastError;
+
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const timeout = 10000; // 10 second timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+                    if (attempt < maxRetries) {
+                        // Exponential backoff: 1s, 2s, 4s...
+                        const delay = Math.pow(2, attempt - 1) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+
+            throw lastError;
+        }
+
+        // Load Properties
+        async function loadProperties() {
+            try {
+                console.log('📥 Loading properties...');
+
+                const data = await fetchWithRetry(`${PROPERTY_API_URL}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Company-Key': TENANT_KEY
+                    }
+                });
+
+                // Filter to active, publicly bookable properties only
+                allProperties = (data.properties || []).filter(p =>
+                    p.status === 'active' &&
+                    p.nickname &&
+                    p.websiteUrl  // Only show properties with booking links
+                );
+
+                console.log(`✅ Loaded ${allProperties.length} publicly bookable properties`);
+
+                // Populate location dropdown with all unique cities
+                populateLocationDropdown();
+            } catch (error) {
+                console.error('❌ Error loading properties:', error);
+                allProperties = [];
+            }
+        }
+
+        // Populate location dropdown with all unique locations
+        function populateLocationDropdown() {
+            const cities = new Set();
+            allProperties.forEach(prop => {
+                if (prop.address?.city) {
+                    cities.add(prop.address.city);
+                }
+            });
+
+            const dropdown = document.getElementById('locationSelect');
+            dropdown.innerHTML = '<option value="all">All Locations</option>';
+
+            // Sort cities alphabetically and add to dropdown
+            Array.from(cities).sort().forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                dropdown.appendChild(option);
+            });
+
+            console.log(`✅ Found ${cities.size} unique locations`);
+        }
+
+        // Load Reservations (synchronous version - not currently used)
+        async function loadReservations() {
+            try {
+                console.log('📥 Loading reservations...');
+
+                const data = await fetchWithRetry(RESERVATIONS_API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'X-Company-Key': TENANT_KEY
+                    }
+                });
+
+                allReservations = data.reservations || [];
+                console.log(`✅ Loaded ${allReservations.length} reservations`);
+                reservationsLoaded = true;
+            } catch (error) {
+                console.error('❌ Error loading reservations:', error);
+                allReservations = [];
+            }
+        }
+
+        // Load Reservations Asynchronously (background)
+        async function loadReservationsAsync() {
+            try {
+                console.log('🔄 Loading reservations in background...');
+
+                const data = await fetchWithRetry(RESERVATIONS_API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'X-Company-Key': TENANT_KEY
+                    }
+                });
+
+                allReservations = data.reservations || [];
+                reservationsLoaded = true;
+
+                console.log(`✅ Loaded ${allReservations.length} reservations`);
+
+                // Enable "Available" button and remove spinner
+                const availableBtn = document.getElementById('availableOnlyBtn');
+                const spinner = document.getElementById('availabilitySpinner');
+
+                availableBtn.disabled = false;
+                availableBtn.title = 'Show only available properties';
+                if (spinner) {
+                    spinner.style.display = 'none';
+                }
+
+                // Update button text with count
+                updateAvailableButtonText();
+
+                // Auto-switch to "Available" if user hasn't manually changed selection
+                if (autoSwitchToAvailable) {
+                    console.log('🔄 Auto-switching to "Available" view');
+                    showAvailableOnly = true;
+
+                    // Update button states
+                    document.querySelectorAll('[data-availability]').forEach(b => b.classList.remove('active'));
+                    availableBtn.classList.add('active');
+
+                    renderProperties();
+                } else if (showAvailableOnly) {
+                    // If user already had "Available" selected, just re-render
+                    renderProperties();
+                }
+            } catch (error) {
+                console.error('❌ Error loading reservations:', error);
+                allReservations = [];
+
+                // Show error state on button
+                const availableBtn = document.getElementById('availableOnlyBtn');
+                const spinner = document.getElementById('availabilitySpinner');
+
+                availableBtn.disabled = true;
+                availableBtn.title = 'Error loading availability';
+                if (spinner) {
+                    spinner.style.display = 'none';
+                }
+                availableBtn.textContent = 'Availability Error';
+            }
+        }
+
+        // Check if property is available on date
+        function isPropertyAvailable(property, date) {
+            const propertyReservations = allReservations.filter(r =>
+                r.propertyId === property.propertyId ||
+                r.guestyListingId === property.guestyListingId
+            );
+
+            const dateStr = date.toISOString().split('T')[0];
+
+            if (propertyReservations.length > 0) {
+                console.log(`📅 Checking ${property.nickname} on ${dateStr}: ${propertyReservations.length} reservations`);
+            }
+
+            for (const res of propertyReservations) {
+                const checkIn = res.checkInDateLocalized?.split('T')[0] || res.checkInDate?.split('T')[0];
+                const checkOut = res.checkOutDateLocalized?.split('T')[0] || res.checkOutDate?.split('T')[0];
+
+                console.log(`  📆 Reservation: checkIn=${checkIn}, checkOut=${checkOut}, overlaps=${checkIn <= dateStr && checkOut > dateStr}`);
+
+                // Property is NOT available if there's a reservation that overlaps this date
+                if (checkIn <= dateStr && checkOut > dateStr) {
+                    console.log(`  ❌ ${property.nickname} is NOT available (occupied ${checkIn} to ${checkOut})`);
+                    return false;
+                }
+            }
+
+            if (propertyReservations.length > 0) {
+                console.log(`  ✅ ${property.nickname} is available (no overlapping reservations)`);
+            }
+
+            return true;
+        }
+
+        // Filter Properties
+        function filterProperties() {
+            console.log(`🔍 Filtering: showAvailableOnly=${showAvailableOnly}, reservationsLoaded=${reservationsLoaded}, totalProperties=${allProperties.length}, totalReservations=${allReservations.length}`);
+
+            filteredProperties = allProperties.filter(property => {
+                // Check availability ONLY if "Available Only" is selected AND reservations are loaded
+                if (showAvailableOnly && reservationsLoaded) {
+                    const isAvailable = isPropertyAvailable(property, currentDate);
+                    if (!isAvailable) {
+                        console.log(`❌ Filtering out ${property.nickname} - not available on ${currentDate.toISOString().split('T')[0]}`);
+                        return false;
+                    }
+                }
+
+                // Location filter
+                if (selectedLocation !== 'all') {
+                    const city = property.address?.city || '';
+                    if (!city.toLowerCase().includes(selectedLocation.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                // Bedrooms filter (0 = Any, no filter)
+                if (advancedFilters.bedrooms && parseInt(advancedFilters.bedrooms) > 0) {
+                    const bedrooms = parseInt(property.bedrooms) || 0;
+                    if (bedrooms < parseInt(advancedFilters.bedrooms)) {
+                        return false;
+                    }
+                }
+
+                // Bathrooms filter (0 = Any, no filter)
+                if (advancedFilters.bathrooms && parseFloat(advancedFilters.bathrooms) > 0) {
+                    const bathrooms = parseFloat(property.bathrooms) || 0;
+                    if (bathrooms < parseFloat(advancedFilters.bathrooms)) {
+                        return false;
+                    }
+                }
+
+                // Accommodates filter (0 = Any, no filter)
+                if (advancedFilters.accommodates && parseInt(advancedFilters.accommodates) > 0) {
+                    const accommodates = parseInt(property.accommodates) || 0;
+                    if (accommodates < parseInt(advancedFilters.accommodates)) {
+                        return false;
+                    }
+                }
+
+                // Amenities filter
+                if (advancedFilters.amenities.length > 0) {
+                    const propertyAmenities = property.amenities || [];
+                    const matchMode = advancedFilters.amenityMatch || 'any';
+
+                    if (matchMode === 'all') {
+                        // Match ALL: property must have ALL selected amenities
+                        const hasAllAmenities = advancedFilters.amenities.every(amenity =>
+                            propertyAmenities.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
+                        );
+                        if (!hasAllAmenities) {
+                            return false;
+                        }
+                    } else {
+                        // Match ANY: property must have AT LEAST ONE selected amenity
+                        const hasAnyAmenity = advancedFilters.amenities.some(amenity =>
+                            propertyAmenities.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
+                        );
+                        if (!hasAnyAmenity) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            });
+
+            console.log(`✅ Filtered to ${filteredProperties.length} properties`);
+            updateAvailableButtonText();
+        }
+
+        // Update Available button text with count
+        function updateAvailableButtonText() {
+            if (!reservationsLoaded) return;
+
+            const availableBtn = document.getElementById('availableOnlyBtn');
+            const spinner = document.getElementById('availabilitySpinner');
+
+            // Count available properties that also match current filters (location, bedrooms, etc.)
+            const availableCount = allProperties.filter(property => {
+                // Must be available on the current date
+                if (!isPropertyAvailable(property, currentDate)) {
+                    return false;
+                }
+
+                // Apply same filters as filterProperties() except availability
+                // Location filter
+                if (selectedLocation !== 'all') {
+                    const city = property.address?.city || '';
+                    if (!city.toLowerCase().includes(selectedLocation.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                // Bedrooms filter
+                if (advancedFilters.bedrooms && parseInt(advancedFilters.bedrooms) > 0) {
+                    const bedrooms = parseInt(property.bedrooms) || 0;
+                    if (bedrooms < parseInt(advancedFilters.bedrooms)) {
+                        return false;
+                    }
+                }
+
+                // Bathrooms filter
+                if (advancedFilters.bathrooms && parseFloat(advancedFilters.bathrooms) > 0) {
+                    const bathrooms = parseFloat(property.bathrooms) || 0;
+                    if (bathrooms < parseFloat(advancedFilters.bathrooms)) {
+                        return false;
+                    }
+                }
+
+                // Accommodates filter
+                if (advancedFilters.accommodates && parseInt(advancedFilters.accommodates) > 0) {
+                    const accommodates = parseInt(property.accommodates) || 0;
+                    if (accommodates < parseInt(advancedFilters.accommodates)) {
+                        return false;
+                    }
+                }
+
+                // Amenities filter
+                if (advancedFilters.amenities.length > 0) {
+                    const propertyAmenities = property.amenities || [];
+                    const matchMode = advancedFilters.amenityMatch || 'any';
+
+                    if (matchMode === 'all') {
+                        const hasAllAmenities = advancedFilters.amenities.every(amenity =>
+                            propertyAmenities.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
+                        );
+                        if (!hasAllAmenities) {
+                            return false;
+                        }
+                    } else {
+                        const hasAnyAmenity = advancedFilters.amenities.some(amenity =>
+                            propertyAmenities.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
+                        );
+                        if (!hasAnyAmenity) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }).length;
+
+            // Update button text (preserve spinner if it exists and is visible)
+            const spinnerHtml = spinner && spinner.style.display !== 'none'
+                ? spinner.outerHTML
+                : '';
+
+            availableBtn.innerHTML = `${spinnerHtml}${availableCount} Available`;
+        }
+
+        // Render Properties
+        function renderProperties() {
+            filterProperties();
+
+            if (currentView === 'list') {
+                renderList();
+            } else {
+                renderMap();
+            }
+        }
+
+        // Render List View
+        function renderList() {
+            const grid = document.getElementById('propertyGrid');
+
+            if (filteredProperties.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6b7280;">No properties found matching your filters.</div>';
+                return;
+            }
+
+            grid.innerHTML = filteredProperties.map(property => {
+                const imageUrl = property.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image';
+
+                return `
+                    <div class="property-card" onclick="showPropertyDetails('${property.propertyId}')">
+                        <img class="property-image" src="${imageUrl}" alt="${property.nickname}">
+                        <div class="property-content">
+                            <div class="property-name">${property.nickname}</div>
+                            <div class="property-location">${property.address?.city || 'Location not specified'}</div>
+                            <div class="property-stats">
+                                <span>🛏️ ${property.bedrooms || 0} bed</span>
+                                <span>🛁 ${property.bathrooms || 0} bath</span>
+                            </div>
+                            <span class="availability-badge">Available</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Format Status
+        function formatStatus(status) {
+            const labels = {
+                'available': 'Available',
+                'checkin': 'Check-in Today',
+                'checkout': 'Check-out Today',
+                'occupied': 'Occupied',
+                'owner': 'Owner Block'
+            };
+            return labels[status] || status;
+        }
+
+        // Initialize Map
+        function initializeMap() {
+            const mapOptions = {
+                center: { lat: 34.0000, lng: -77.9000 },
+                zoom: 11,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }
+                ]
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+            // Disable auto-switch on any map interaction
+            map.addListener('drag', () => {
+                autoSwitchToAvailable = false;
+            });
+            map.addListener('zoom_changed', () => {
+                autoSwitchToAvailable = false;
+            });
+        }
+
+        // Render Map
+        function renderMap() {
+            if (!map) return;
+
+            // Clear existing markers and labels
+            markers.forEach(item => {
+                if (item.marker) {
+                    item.marker.setMap(null);
+                }
+                if (item.labelOverlay) {
+                    item.labelOverlay.setMap(null);
+                }
+            });
+            markers = [];
+
+            const bounds = new google.maps.LatLngBounds();
+
+            filteredProperties.forEach(property => {
+                if (!property.address?.lat || !property.address?.lng) return;
+
+                const position = {
+                    lat: property.address.lat,
+                    lng: property.address.lng
+                };
+
+                // Get thumbnail URL from property images
+                const thumbnailUrl = property.images?.[0];
+
+                // Truncate nickname if too long (max 20 chars)
+                let displayName = property.nickname || 'Property';
+                if (displayName.length > 20) {
+                    displayName = displayName.substring(0, 17) + '...';
+                }
+
+                let markerOptions = {
+                    position,
+                    map,
+                    title: property.nickname
+                };
+
+                if (thumbnailUrl) {
+                    // Use property thumbnail as marker icon (48x48)
+                    markerOptions.icon = {
+                        url: thumbnailUrl,
+                        scaledSize: new google.maps.Size(48, 48),
+                        anchor: new google.maps.Point(24, 24)
+                    };
+                } else {
+                    // Fallback: Green house icon for available properties
+                    const houseIconPath = 'M 0 -16 L 12 -4 L 12 10 L -12 10 L -12 -4 Z';
+                    markerOptions.icon = {
+                        path: houseIconPath,
+                        fillColor: '#10b981',  // Green for available
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                        scale: 1.2,
+                        anchor: new google.maps.Point(0, 10)
+                    };
+                }
+
+                const marker = new google.maps.Marker(markerOptions);
+
+                // Create label below marker using OverlayView
+                const labelDiv = document.createElement('div');
+                labelDiv.style.cssText = `
+                    position: absolute;
+                    background: rgba(255, 255, 255, 0.95);
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #1d1d1f;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    border: 1px solid #e5e7eb;
+                    transform: translate(-50%, 0);
+                    margin-top: 32px;
+                `;
+                labelDiv.textContent = displayName;
+
+                // Custom overlay for label
+                class PropertyLabel extends google.maps.OverlayView {
+                    constructor(position, labelDiv, map) {
+                        super();
+                        this.position = position;
+                        this.labelDiv = labelDiv;
+                        this.setMap(map);
+                    }
+
+                    onAdd() {
+                        const panes = this.getPanes();
+                        panes.overlayLayer.appendChild(this.labelDiv);
+                    }
+
+                    draw() {
+                        const projection = this.getProjection();
+                        const point = projection.fromLatLngToDivPixel(this.position);
+
+                        if (point) {
+                            this.labelDiv.style.left = point.x + 'px';
+                            this.labelDiv.style.top = point.y + 'px';
+                        }
+                    }
+
+                    onRemove() {
+                        if (this.labelDiv.parentNode) {
+                            this.labelDiv.parentNode.removeChild(this.labelDiv);
+                        }
+                    }
+                }
+
+                const labelOverlay = new PropertyLabel(new google.maps.LatLng(position.lat, position.lng), labelDiv, map);
+
+                marker.addListener('click', () => {
+                    showPropertyDetails(property.propertyId);
+                });
+
+                markers.push({ marker, labelOverlay });
+                bounds.extend(position);
+            });
+
+            // Fit bounds if we have markers
+            if (markers.length > 0) {
+                map.fitBounds(bounds);
+            }
+        }
+
+        // Switch View
+        function switchView(view) {
+            const mapEl = document.getElementById('map');
+            const listEl = document.querySelector('.list-view');
+
+            if (view === 'list') {
+                mapEl.classList.add('hidden');
+                listEl.classList.add('active');
+                renderList();
+            } else {
+                mapEl.classList.remove('hidden');
+                listEl.classList.remove('active');
+                renderMap();
+            }
+        }
+
+        // Show Property Details
+        async function showPropertyDetails(propertyId) {
+            const property = allProperties.find(p => p.propertyId === propertyId);
+            if (!property) return;
+
+            const modal = document.getElementById('propertyModal');
+            const imageUrl = property.images?.[0] || 'https://via.placeholder.com/800x300?text=No+Image';
+
+            document.getElementById('propertyModalImage').src = imageUrl;
+            document.getElementById('propertyModalName').textContent = property.nickname;
+
+            // Show short description initially
+            const descriptionEl = document.getElementById('propertyModalDescription');
+            descriptionEl.textContent = property.description || 'Beautiful beachfront vacation rental property. Click "Book Now" for full details and availability.';
+
+            // Property details
+            const details = `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px;">
+                    <div><strong>Location:</strong> ${property.address?.city || 'N/A'}, ${property.address?.state || ''}</div>
+                    <div><strong>Bedrooms:</strong> ${property.bedrooms || 0}</div>
+                    <div><strong>Bathrooms:</strong> ${property.bathrooms || 0}</div>
+                    <div><strong>Sleeps:</strong> ${property.accommodates || 0}</div>
+                    <div><strong>Address:</strong> ${property.address?.street || 'N/A'}</div>
+                </div>
+            `;
+            document.getElementById('propertyModalDetails').innerHTML = details;
+
+            // Booking link
+            const bookBtn = document.getElementById('propertyModalBookBtn');
+            if (property.websiteUrl) {
+                bookBtn.href = property.websiteUrl;
+                bookBtn.style.display = 'block';
+            } else {
+                bookBtn.style.display = 'none';
+            }
+
+            modal.classList.add('active');
+
+            // Scroll modal content to top
+            const modalBody = modal.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.scrollTop = 0;
+            }
+
+            // Lazy-load full marketing description from Guesty
+            loadFullDescription(propertyId);
+        }
+
+        // Lazy-load full marketing description with localStorage caching
+        async function loadFullDescription(propertyId) {
+            try {
+                // Check localStorage cache first (cache for 7 days)
+                const cacheKey = `property_description_${propertyId}`;
+                const cached = localStorage.getItem(cacheKey);
+
+                if (cached) {
+                    const { data, timestamp } = JSON.parse(cached);
+                    const age = Date.now() - timestamp;
+                    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+                    if (age < sevenDays) {
+                        console.log(`📦 Using cached description for ${propertyId}`);
+                        updateDescriptionDisplay(data);
+                        return;
+                    }
+                }
+
+                // Fetch from API
+                console.log(`📡 Fetching full description for ${propertyId}`);
+                const response = await fetch(`${PUBLIC_API_BASE}/properties/${encodeURIComponent(propertyId)}/description`);
+
+                if (!response.ok) {
+                    console.warn(`Failed to fetch description: ${response.status}`);
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Cache the result
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    data,
+                    timestamp: Date.now()
+                }));
+
+                console.log(`✅ Loaded full description from ${data.source}`);
+                updateDescriptionDisplay(data);
+            } catch (error) {
+                console.error('Error loading full description:', error);
+            }
+        }
+
+        function updateDescriptionDisplay(data) {
+            const descriptionEl = document.getElementById('propertyModalDescription');
+
+            // Use fullDescription if available (from Guesty), otherwise use summary
+            let description = '';
+            if (data.fullDescription && data.fullDescription.trim()) {
+                description = data.fullDescription;
+            } else if (data.description && data.description.trim()) {
+                description = data.description;
+            }
+
+            // Format description with proper line breaks
+            if (description) {
+                // Preserve line breaks by using white-space: pre-wrap
+                descriptionEl.style.whiteSpace = 'pre-wrap';
+                descriptionEl.textContent = description;
+            }
+
+            // Optionally show neighborhood info if available
+            if (data.neighborhood && data.neighborhood.trim()) {
+                const neighborhoodEl = document.createElement('div');
+                neighborhoodEl.style.cssText = 'margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 14px; color: #6b7280; white-space: pre-wrap;';
+                neighborhoodEl.innerHTML = `<strong>Neighborhood:</strong> ${data.neighborhood}`;
+                descriptionEl.parentNode.insertBefore(neighborhoodEl, document.getElementById('propertyModalDetails'));
+            }
+        }
+
+        // Close Property Modal
+        function closePropertyModal() {
+            document.getElementById('propertyModal').classList.remove('active');
+        }
+
+        // Advanced Filters
+        function applyAdvancedFilters() {
+            advancedFilters.bedrooms = document.getElementById('filterBedrooms').value;
+            advancedFilters.bathrooms = document.getElementById('filterBathrooms').value;
+            advancedFilters.accommodates = document.getElementById('filterAccommodates').value;
+
+            // Get selected amenities from the Set
+            advancedFilters.amenities = Array.from(selectedAmenities);
+
+            // Get amenity match mode (any or all)
+            advancedFilters.amenityMatch = document.querySelector('input[name="amenityMatch"]:checked').value;
+
+            renderProperties();
+        }
+
+        function clearAdvancedFilters() {
+            // Reset sliders to 0 (Any)
+            document.getElementById('filterBedrooms').value = '0';
+            document.getElementById('filterBathrooms').value = '0';
+            document.getElementById('filterAccommodates').value = '0';
+
+            // Reset displayed values
+            document.getElementById('bedroomsValue').textContent = 'Any';
+            document.getElementById('bathroomsValue').textContent = 'Any';
+            document.getElementById('accommodatesValue').textContent = 'Any';
+
+            // Reset amenity match mode to "any"
+            document.getElementById('amenityMatchAny').checked = true;
+
+            // Clear amenity selections
+            selectedAmenities.clear();
+            if (amenitiesLoaded) {
+                renderAmenitiesTagCloud();
+            }
+
+            advancedFilters = {
+                bedrooms: '',
+                bathrooms: '',
+                accommodates: '',
+                amenities: [],
+                amenityMatch: 'any'
+            };
+
+            renderProperties();
+        }
+
+        // Amenities Tag Cloud Functions
+        async function loadAmenitiesTagCloud() {
+            const tagCloud = document.getElementById('amenitiesTagCloud');
+            tagCloud.innerHTML = '<div class="amenities-loading">Loading amenities...</div>';
+
+            try {
+                console.log('🏖️ Extracting amenities from loaded properties...');
+
+                // Extract unique amenities from all properties
+                const amenitySet = new Set();
+                allProperties.forEach(p => {
+                    if (p.amenities && Array.isArray(p.amenities)) {
+                        p.amenities.forEach(a => {
+                            if (a && typeof a === 'string' && a.trim()) {
+                                amenitySet.add(a.trim());
+                            }
+                        });
+                    }
+                });
+
+                // Sort amenities alphabetically
+                availableAmenities = [...amenitySet].sort((a, b) =>
+                    a.toLowerCase().localeCompare(b.toLowerCase())
+                );
+
+                console.log(`✅ Found ${availableAmenities.length} unique amenities`);
+
+                renderAmenitiesTagCloud();
+                amenitiesLoaded = true;
+            } catch (error) {
+                console.error('Failed to load amenities:', error);
+                tagCloud.innerHTML = '<div class="amenities-loading" style="color: #ef4444;">Failed to load amenities</div>';
+            }
+        }
+
+        function renderAmenitiesTagCloud() {
+            const tagCloud = document.getElementById('amenitiesTagCloud');
+
+            if (availableAmenities.length === 0) {
+                tagCloud.innerHTML = '<div class="amenities-loading">No amenities found</div>';
+                return;
+            }
+
+            tagCloud.innerHTML = availableAmenities.map(amenity => {
+                const isSelected = selectedAmenities.has(amenity);
+                return `<span class="amenity-tag ${isSelected ? 'selected' : ''}"
+                              onclick="toggleAmenitySelection('${amenity.replace(/'/g, "\\'")}')">${amenity}</span>`;
+            }).join('');
+        }
+
+        function toggleAmenitySelection(amenity) {
+            if (selectedAmenities.has(amenity)) {
+                selectedAmenities.delete(amenity);
+            } else {
+                selectedAmenities.add(amenity);
+            }
+            renderAmenitiesTagCloud();
+        }
+
+        function clearAmenitySelections() {
+            selectedAmenities.clear();
+            renderAmenitiesTagCloud();
+        }
+    </script>
+</body>
+</html>
