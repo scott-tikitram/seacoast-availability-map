@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Golf Cart Friendly Properties - Sea Coast Rentals</title>
+    <link rel="icon" type="image/png" href="CircleDolphinNoAlpha200.png">
+    <link rel="apple-touch-icon" href="CircleDolphinNoAlpha200.png">
+
+    <!--
+    Golf Cart Friendly Properties v1.0.0
+
+    @version 1.0.0
+    @created 2026-05-02
+
+    @description
+    Public-facing page showing Sea Coast Rentals properties that allow golf carts.
+    Displays property cards with prominent golf cart policy badges, map + list views,
+    and direct booking links. Data sourced from Guesty custom fields via public API.
+
+    @public
+    - No authentication required
+    - Shows only properties with golfCartAllowed = true
+    -->
+
+    <meta name="description" content="Find golf cart friendly vacation rental properties at Sea Coast Rentals in Kure Beach, Carolina Beach, and Wilmington NC.">
+    <meta property="og:title" content="Golf Cart Friendly Properties - Sea Coast Rentals">
+    <meta property="og:description" content="Browse vacation rentals that allow golf carts at Sea Coast Rentals.">
+
+    <style>
+        :root {
+            --primary: #0369a1;
+            --primary-dark: #075985;
+            --primary-light: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #075985 0%, #0369a1 50%, #0ea5e9 100%);
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-logo img { height: 36px; }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+        .header-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+        .header-count {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Controls */
+        .controls-bar {
+            background: white;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            position: sticky;
+            top: 68px;
+            z-index: 99;
+        }
+        .view-toggle {
+            display: flex;
+            background: var(--gray-100);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .view-button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .view-button.active {
+            background: var(--primary);
+            color: white;
+        }
+        .location-select {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Map */
+        #map {
+            width: 100%;
+            height: calc(100vh - 130px);
+            position: relative;
+        }
+        .map-loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .map-loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* List View */
+        .list-view { display: none; padding: 20px; }
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        /* Property Card */
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .property-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .property-content { padding: 16px; }
+        .property-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        .property-location {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 10px;
+        }
+        .property-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--gray-600);
+            margin-bottom: 12px;
+        }
+
+        /* Golf Cart Policy Badge */
+        .golf-cart-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+            margin-bottom: 12px;
+            line-height: 1.3;
+            width: 100%;
+        }
+        .golf-cart-badge .gc-icon { font-size: 18px; flex-shrink: 0; }
+        .golf-cart-badge.gas-only {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        /* Book Button */
+        .book-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .book-btn:hover { background: var(--primary-dark); }
+
+        /* Property Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            display: none;
+        }
+        .modal-backdrop.visible { display: flex; align-items: center; justify-content: center; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            position: relative;
+        }
+        .modal-body { padding: 24px; }
+        .modal-title { font-size: 22px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+        .modal-location { font-size: 14px; color: var(--gray-500); margin-bottom: 16px; }
+        .modal-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .modal-description {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .modal-book-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .modal-book-btn:hover { background: var(--primary-dark); }
+
+        /* Info Window (map popup) */
+        .info-window {
+            max-width: 280px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .info-window img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        .info-window h3 { font-size: 15px; margin-bottom: 2px; color: #1f2937; }
+        .info-window .iw-location { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+        .info-window .iw-stats { font-size: 12px; color: #4b5563; margin-bottom: 6px; }
+        .info-window .iw-policy { font-size: 12px; padding: 6px 8px; border-radius: 6px; background: #d1fae5; color: #065f46; margin-bottom: 8px; font-weight: 500; }
+        .info-window .iw-policy.gas { background: #fef3c7; color: #92400e; }
+        .info-window a { display: block; text-align: center; padding: 8px; background: #0369a1; color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; }
+
+        /* Loading */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            padding: 60px;
+        }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-title { font-size: 15px; }
+            .property-grid { grid-template-columns: 1fr; }
+            #map { height: calc(100vh - 120px); }
+            .modal { width: 95%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-logo">
+                <img src="seacoastrentalslogo.png" alt="Sea Coast Rentals">
+                <div>
+                    <div class="header-title">Golf Cart Friendly Properties</div>
+                    <div class="header-subtitle">Sea Coast Rentals</div>
+                </div>
+            </div>
+            <span class="header-count" id="propertyCount">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+        <div class="view-toggle">
+            <button class="view-button active" data-view="map">Map</button>
+            <button class="view-button" data-view="list">List</button>
+        </div>
+        <select class="location-select" id="locationSelect">
+            <option value="all">All Locations</option>
+        </select>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Map View -->
+        <div id="map">
+            <div class="map-loading-overlay" id="mapLoadingOverlay">
+                <div class="map-loading-spinner"></div>
+                <div style="margin-top: 12px; color: #6b7280; font-size: 14px;">Loading golf cart properties...</div>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div class="list-view" id="listView">
+            <div class="property-grid" id="propertyGrid">
+                <div class="loading-spinner"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Property Modal -->
+    <div class="modal-backdrop" id="modalBackdrop">
+        <div class="modal" id="propertyModal"></div>
+    </div>
+
+    <script>
+    // ========================================================================
+    // Golf Cart Friendly Properties v1.0.0
+    // ========================================================================
+
+    const API_URL = 'https://ew3sgfqhqei7uu5zjheee2dpza0qudnz.lambda-url.us-east-1.on.aws';
+    const TENANT_KEY = 'seacoastrentals';
+    const GOOGLE_MAPS_KEY = 'AIzaSyA-qXX4Y2cF5UrNYwxaVNxDXHtzRHGb2Mg';
+
+    let allProperties = [];
+    let filteredProperties = [];
+    let map = null;
+    let markers = [];
+    let infoWindow = null;
+    let currentView = 'map';
+
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadProperties();
+        initializeEventListeners();
+    });
+
+    // Load Google Maps
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    window.initMap = function() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 34.0000, lng: -77.9000 },
+            zoom: 11,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            styles: [
+                { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+                { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+            ]
+        });
+        infoWindow = new google.maps.InfoWindow();
+        document.getElementById('mapLoadingOverlay').style.display = 'none';
+        if (allProperties.length > 0) renderMap();
+    };
+
+    // ========================================================================
+    // Data Loading
+    // ========================================================================
+
+    async function loadProperties() {
+        try {
+            const response = await fetch(API_URL, {
+                headers: { 'X-Company-Key': TENANT_KEY }
+            });
+            const data = await response.json();
+            const properties = data.properties || [];
+
+            // Filter to golf cart allowed only
+            allProperties = properties.filter(p =>
+                p.golfCartAllowed === true &&
+                p.address?.lat && p.address?.lng
+            );
+
+            // Sort by city then name
+            allProperties.sort((a, b) => {
+                const cityA = a.address?.city || '';
+                const cityB = b.address?.city || '';
+                if (cityA !== cityB) return cityA.localeCompare(cityB);
+                return (a.nickname || '').localeCompare(b.nickname || '');
+            });
+
+            filteredProperties = [...allProperties];
+
+            // Populate location dropdown
+            const locations = [...new Set(allProperties.map(p => p.address?.city).filter(Boolean))].sort();
+            const select = document.getElementById('locationSelect');
+            locations.forEach(loc => {
+                const opt = document.createElement('option');
+                opt.value = loc;
+                opt.textContent = loc;
+                select.appendChild(opt);
+            });
+
+            updateCount();
+            renderList();
+            if (map) renderMap();
+        } catch (e) {
+            console.error('Failed to load properties:', e);
+            document.getElementById('propertyGrid').innerHTML =
+                '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#6b7280;">Failed to load properties. Please try again.</div>';
+        }
+    }
+
+    function updateCount() {
+        document.getElementById('propertyCount').textContent = `${filteredProperties.length} Properties`;
+    }
+
+    // ========================================================================
+    // Filtering
+    // ========================================================================
+
+    function filterProperties() {
+        const location = document.getElementById('locationSelect').value;
+        filteredProperties = allProperties.filter(p => {
+            if (location !== 'all' && p.address?.city !== location) return false;
+            return true;
+        });
+        updateCount();
+        renderList();
+        renderMap();
+    }
+
+    // ========================================================================
+    // Golf Cart Policy Formatting
+    // ========================================================================
+
+    function formatGolfCartBadge(policy) {
+        if (!policy) return { html: 'Golf Carts Allowed', cssClass: '', icon: '' };
+
+        const text = policy.trim();
+        const isGasOnly = /gas.powered|gas only|no electri/i.test(text);
+
+        return {
+            html: text,
+            cssClass: isGasOnly ? 'gas-only' : '',
+            icon: isGasOnly ? '' : ''
+        };
+    }
+
+    // ========================================================================
+    // List Rendering
+    // ========================================================================
+
+    function renderList() {
+        const grid = document.getElementById('propertyGrid');
+
+        if (filteredProperties.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#6b7280;">No golf cart friendly properties found for this location.</div>';
+            return;
+        }
+
+        grid.innerHTML = filteredProperties.map(property => {
+            const imageUrl = property.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image';
+            const badge = formatGolfCartBadge(property.golfCartPolicy);
+
+            return `
+                <div class="property-card" onclick="showPropertyModal('${property.propertyId}')">
+                    <img class="property-image" src="${imageUrl}" alt="${property.nickname}" loading="lazy">
+                    <div class="property-content">
+                        <div class="property-name">${property.nickname}</div>
+                        <div class="property-location">${property.address?.city || ''}, ${property.address?.state || 'NC'}</div>
+                        <div class="property-stats">
+                            <span>🛏️ ${property.bedrooms || 0} bed</span>
+                            <span>🛁 ${property.bathrooms || 0} bath</span>
+                            <span>👥 Sleeps ${property.accommodates || 0}</span>
+                        </div>
+                        <div class="golf-cart-badge ${badge.cssClass}">
+                            <span class="gc-icon">${badge.icon}</span>
+                            <span>${badge.html}</span>
+                        </div>
+                        ${property.websiteUrl ? `<a href="${property.websiteUrl}" target="_blank" class="book-btn" onclick="event.stopPropagation();">Book Now</a>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ========================================================================
+    // Map Rendering
+    // ========================================================================
+
+    function renderMap() {
+        if (!map) return;
+
+        // Clear existing markers
+        markers.forEach(m => m.setMap(null));
+        markers = [];
+
+        const bounds = new google.maps.LatLngBounds();
+
+        filteredProperties.forEach(property => {
+            const lat = property.address?.lat;
+            const lng = property.address?.lng;
+            if (!lat || !lng) return;
+
+            const position = { lat, lng };
+            bounds.extend(position);
+
+            const marker = new google.maps.Marker({
+                position,
+                map,
+                title: property.nickname,
+                icon: {
+                    url: 'data:image/svg+xml,' + encodeURIComponent(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+                            <path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 24 16 24s16-12 16-24C32 7.2 24.8 0 16 0z" fill="#059669"/>
+                            <circle cx="16" cy="15" r="8" fill="white"/>
+                            <text x="16" y="19" text-anchor="middle" font-size="14" fill="#059669">⛳</text>
+                        </svg>
+                    `),
+                    scaledSize: new google.maps.Size(32, 40),
+                    anchor: new google.maps.Point(16, 40)
+                }
+            });
+
+            marker.addListener('click', () => {
+                const badge = formatGolfCartBadge(property.golfCartPolicy);
+                const isGas = badge.cssClass === 'gas-only';
+                const imageUrl = property.images?.[0] || '';
+                const imageHtml = imageUrl ? `<img src="${imageUrl}" alt="${property.nickname}">` : '';
+                const bookLink = property.websiteUrl ? `<a href="${property.websiteUrl}" target="_blank">Book Now</a>` : '';
+
+                infoWindow.setContent(`
+                    <div class="info-window">
+                        ${imageHtml}
+                        <h3>${property.nickname}</h3>
+                        <div class="iw-location">${property.address?.city || ''}, NC</div>
+                        <div class="iw-stats">🛏️ ${property.bedrooms || 0} bed &nbsp; 🛁 ${property.bathrooms || 0} bath &nbsp; 👥 ${property.accommodates || 0}</div>
+                        <div class="iw-policy ${isGas ? 'gas' : ''}">${badge.icon} ${badge.html}</div>
+                        ${bookLink}
+                    </div>
+                `);
+                infoWindow.open(map, marker);
+            });
+
+            markers.push(marker);
+        });
+
+        if (filteredProperties.length > 0) {
+            map.fitBounds(bounds);
+            // Don't zoom in too far for single properties
+            google.maps.event.addListenerOnce(map, 'idle', () => {
+                if (map.getZoom() > 15) map.setZoom(15);
+            });
+        }
+    }
+
+    // ========================================================================
+    // Property Modal
+    // ========================================================================
+
+    function showPropertyModal(propertyId) {
+        const property = allProperties.find(p => p.propertyId === propertyId);
+        if (!property) return;
+
+        const imageUrl = property.images?.[0] || 'https://via.placeholder.com/600x300?text=No+Image';
+        const badge = formatGolfCartBadge(property.golfCartPolicy);
+        const bookLink = property.websiteUrl || '#';
+
+        document.getElementById('propertyModal').innerHTML = `
+            <div style="position: relative;">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <img class="modal-image" src="${imageUrl}" alt="${property.nickname}">
+            </div>
+            <div class="modal-body">
+                <div class="modal-title">${property.nickname}</div>
+                <div class="modal-location">${property.address?.street || ''}, ${property.address?.city || ''}, NC ${property.address?.zipcode || ''}</div>
+                <div class="modal-stats">
+                    <span>🛏️ ${property.bedrooms || 0} Bedrooms</span>
+                    <span>🛁 ${property.bathrooms || 0} Bathrooms</span>
+                    <span>👥 Sleeps ${property.accommodates || 0}</span>
+                </div>
+                <div class="golf-cart-badge ${badge.cssClass}" style="margin-bottom: 16px;">
+                    <span class="gc-icon">${badge.icon}</span>
+                    <span>${badge.html}</span>
+                </div>
+                ${property.description ? `<div class="modal-description">${property.description}</div>` : ''}
+                <a href="${bookLink}" target="_blank" class="modal-book-btn">Book This Property</a>
+            </div>
+        `;
+
+        document.getElementById('modalBackdrop').classList.add('visible');
+    }
+
+    function closeModal() {
+        document.getElementById('modalBackdrop').classList.remove('visible');
+    }
+
+    // ========================================================================
+    // Event Listeners
+    // ========================================================================
+
+    function initializeEventListeners() {
+        // View toggle
+        document.querySelectorAll('.view-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                if (!view) return;
+                currentView = view;
+                document.querySelectorAll('.view-button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                document.getElementById('map').style.display = view === 'map' ? 'block' : 'none';
+                document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+
+                if (view === 'map' && map) {
+                    google.maps.event.trigger(map, 'resize');
+                    renderMap();
+                }
+            });
+        });
+
+        // Location filter
+        document.getElementById('locationSelect').addEventListener('change', filterProperties);
+
+        // Modal close on backdrop click
+        document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modalBackdrop')) closeModal();
+        });
+
+        // Escape key closes modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    }
+    </script>
+</body>
+</html>
