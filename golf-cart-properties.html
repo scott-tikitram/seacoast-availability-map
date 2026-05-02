@@ -127,7 +127,7 @@
             background: var(--primary);
             color: white;
         }
-        .location-select {
+        .filter-select {
             padding: 8px 12px;
             border: 1px solid var(--gray-200);
             border-radius: 8px;
@@ -135,6 +135,22 @@
             background: white;
             color: var(--gray-700);
             cursor: pointer;
+        }
+        .filter-select:not([value=""]):not(:first-child) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .filter-label {
+            font-size: 11px;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 600;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         /* Main Container */
@@ -389,9 +405,38 @@
             <button class="view-button active" data-view="map">Map</button>
             <button class="view-button" data-view="list">List</button>
         </div>
-        <select class="location-select" id="locationSelect">
-            <option value="all">All Locations</option>
-        </select>
+        <div class="filter-group">
+            <span class="filter-label">Bedrooms</span>
+            <select class="filter-select" id="filterBedrooms" onchange="filterProperties()">
+                <option value="all">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+                <option value="5">5+</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Bathrooms</span>
+            <select class="filter-select" id="filterBathrooms" onchange="filterProperties()">
+                <option value="all">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Sleeps</span>
+            <select class="filter-select" id="filterSleeps" onchange="filterProperties()">
+                <option value="all">Any</option>
+                <option value="2">2+</option>
+                <option value="4">4+</option>
+                <option value="6">6+</option>
+                <option value="8">8+</option>
+                <option value="10">10+</option>
+            </select>
+        </div>
     </div>
 
     <!-- Main Container -->
@@ -497,16 +542,6 @@
 
             filteredProperties = [...allProperties];
 
-            // Populate location dropdown
-            const locations = [...new Set(allProperties.map(p => p.address?.city).filter(Boolean))].sort();
-            const select = document.getElementById('locationSelect');
-            locations.forEach(loc => {
-                const opt = document.createElement('option');
-                opt.value = loc;
-                opt.textContent = loc;
-                select.appendChild(opt);
-            });
-
             updateCount();
             renderList();
             if (map) renderMap();
@@ -539,9 +574,14 @@
     }
 
     function filterProperties() {
-        const location = document.getElementById('locationSelect').value;
+        const minBeds = document.getElementById('filterBedrooms').value;
+        const minBaths = document.getElementById('filterBathrooms').value;
+        const minSleeps = document.getElementById('filterSleeps').value;
+
         filteredProperties = allProperties.filter(p => {
-            if (location !== 'all' && p.address?.city !== location) return false;
+            if (minBeds !== 'all' && (p.bedrooms || 0) < parseInt(minBeds)) return false;
+            if (minBaths !== 'all' && (p.bathrooms || 0) < parseInt(minBaths)) return false;
+            if (minSleeps !== 'all' && (p.accommodates || 0) < parseInt(minSleeps)) return false;
             return true;
         });
         updateCount();
@@ -748,9 +788,6 @@
                 }
             });
         });
-
-        // Location filter
-        document.getElementById('locationSelect').addEventListener('change', filterProperties);
 
         // Modal close on backdrop click
         document.getElementById('modalBackdrop').addEventListener('click', (e) => {
