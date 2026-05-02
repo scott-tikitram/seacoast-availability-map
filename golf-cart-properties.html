@@ -525,6 +525,19 @@
     // Filtering
     // ========================================================================
 
+    /**
+     * Generate correct booking URL from nickname.
+     * The SCR website uses slugified nicknames, not the marketing titles
+     * that were originally stored in websiteUrl.
+     */
+    function getBookingUrl(property) {
+        const nickname = property.nickname || '';
+        const slug = nickname.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+        return `https://www.seacoastrentals.com/vacation-rentals/rental/${slug}/`;
+    }
+
     function filterProperties() {
         const location = document.getElementById('locationSelect').value;
         filteredProperties = allProperties.filter(p => {
@@ -584,7 +597,7 @@
                             <span class="gc-icon">${badge.icon}</span>
                             <span>${badge.html}</span>
                         </div>
-                        ${property.websiteUrl ? `<a href="${property.websiteUrl}" target="_blank" class="book-btn" onclick="event.stopPropagation();">Book Now</a>` : ''}
+                        <a href="${getBookingUrl(property)}" target="_blank" class="book-btn" onclick="event.stopPropagation();">Book Now</a>
                     </div>
                 </div>
             `;
@@ -644,7 +657,7 @@
                 const isGas = badge.cssClass === 'gas-only';
                 const imageUrl = property.imageUrl || property.images?.[0] || '';
                 const imageHtml = imageUrl ? `<img src="${imageUrl}" alt="${property.nickname}">` : '';
-                const bookLink = property.websiteUrl ? `<a href="${property.websiteUrl}" target="_blank">Book Now</a>` : '';
+                const bookLink = `<a href="${getBookingUrl(property)}" target="_blank">Book Now</a>`;
 
                 infoWindow.setContent(`
                     <div class="info-window">
@@ -681,7 +694,7 @@
 
         const imageUrl = property.imageUrl || property.images?.[0] || 'https://via.placeholder.com/600x300?text=No+Image';
         const badge = formatGolfCartBadge(property.golfCartPolicy);
-        const bookLink = property.websiteUrl || '#';
+        const bookLink = getBookingUrl(property);
 
         document.getElementById('propertyModal').innerHTML = `
             <div style="position: relative;">
