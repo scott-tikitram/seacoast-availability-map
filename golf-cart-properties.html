@@ -376,7 +376,7 @@
                 <img src="seacoastrentalslogo.png" alt="Sea Coast Rentals">
                 <div>
                     <div class="header-title">Golf Cart Friendly Properties</div>
-                    <div class="header-subtitle">Sea Coast Rentals</div>
+                    <div class="header-subtitle">Carolina Beach &amp; Kure Beach — Sea Coast Rentals</div>
                 </div>
             </div>
             <span class="header-count" id="propertyCount">Loading...</span>
@@ -451,8 +451,8 @@
 
     window.initMap = function() {
         map = new google.maps.Map(document.getElementById('map'), {
-            center: { lat: 34.0000, lng: -77.9000 },
-            zoom: 11,
+            center: { lat: 33.9700, lng: -77.9100 },
+            zoom: 13,
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
@@ -472,16 +472,19 @@
 
     async function loadProperties() {
         try {
-            const response = await fetch(API_URL, {
+            // Use lean golf cart endpoint — server-side filtered, minimal payload
+            const response = await fetch(`${API_URL}?golfCart=true`, {
                 headers: { 'X-Company-Key': TENANT_KEY }
             });
             const data = await response.json();
             const properties = data.properties || [];
 
-            // Filter to golf cart allowed only
+            // Only electric-allowed carts in Carolina Beach & Kure Beach
+            const ALLOWED_CITIES = ['Carolina Beach', 'Kure Beach'];
             allProperties = properties.filter(p =>
-                p.golfCartAllowed === true &&
-                p.address?.lat && p.address?.lng
+                p.address?.lat && p.address?.lng &&
+                ALLOWED_CITIES.includes(p.address?.city) &&
+                !(/gas.powered|gas only|no electri/i.test(p.golfCartPolicy || ''))
             );
 
             // Sort by city then name
@@ -563,7 +566,7 @@
         }
 
         grid.innerHTML = filteredProperties.map(property => {
-            const imageUrl = property.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image';
+            const imageUrl = property.imageUrl || property.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image';
             const badge = formatGolfCartBadge(property.golfCartPolicy);
 
             return `
@@ -615,21 +618,31 @@
                 title: property.nickname,
                 icon: {
                     url: 'data:image/svg+xml,' + encodeURIComponent(`
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
-                            <path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 24 16 24s16-12 16-24C32 7.2 24.8 0 16 0z" fill="#059669"/>
-                            <circle cx="16" cy="15" r="8" fill="white"/>
-                            <text x="16" y="19" text-anchor="middle" font-size="14" fill="#059669">⛳</text>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
+                            <filter id="s"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
+                            <path d="M22 2C11 2 2 11 2 22c0 15 20 28 20 28s20-13 20-28C42 11 33 2 22 2z" fill="#059669" filter="url(#s)"/>
+                            <circle cx="22" cy="20" r="14" fill="white"/>
+                            <g transform="translate(12, 10)" fill="#059669">
+                                <rect x="2" y="6" width="16" height="8" rx="2" fill="#059669"/>
+                                <rect x="0" y="4" width="4" height="4" rx="1" fill="#059669"/>
+                                <rect x="12" y="2" width="2" height="4" fill="#059669"/>
+                                <rect x="10" y="0" width="6" height="3" rx="1" fill="#059669" opacity="0.7"/>
+                                <circle cx="4" cy="16" r="3" fill="#059669"/>
+                                <circle cx="4" cy="16" r="1.5" fill="white"/>
+                                <circle cx="16" cy="16" r="3" fill="#059669"/>
+                                <circle cx="16" cy="16" r="1.5" fill="white"/>
+                            </g>
                         </svg>
                     `),
-                    scaledSize: new google.maps.Size(32, 40),
-                    anchor: new google.maps.Point(16, 40)
+                    scaledSize: new google.maps.Size(44, 52),
+                    anchor: new google.maps.Point(22, 52)
                 }
             });
 
             marker.addListener('click', () => {
                 const badge = formatGolfCartBadge(property.golfCartPolicy);
                 const isGas = badge.cssClass === 'gas-only';
-                const imageUrl = property.images?.[0] || '';
+                const imageUrl = property.imageUrl || property.images?.[0] || '';
                 const imageHtml = imageUrl ? `<img src="${imageUrl}" alt="${property.nickname}">` : '';
                 const bookLink = property.websiteUrl ? `<a href="${property.websiteUrl}" target="_blank">Book Now</a>` : '';
 
@@ -666,7 +679,7 @@
         const property = allProperties.find(p => p.propertyId === propertyId);
         if (!property) return;
 
-        const imageUrl = property.images?.[0] || 'https://via.placeholder.com/600x300?text=No+Image';
+        const imageUrl = property.imageUrl || property.images?.[0] || 'https://via.placeholder.com/600x300?text=No+Image';
         const badge = formatGolfCartBadge(property.golfCartPolicy);
         const bookLink = property.websiteUrl || '#';
 
