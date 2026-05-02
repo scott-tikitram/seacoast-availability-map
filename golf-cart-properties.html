@@ -477,6 +477,54 @@
     let markers = [];
     let infoWindow = null;
     let currentView = 'map';
+    let golfCartMarkerUrl = 'golf-cart-marker.png'; // fallback
+
+    // Generate circular marker with pin tail from the golf cart image
+    (function buildMarkerIcon() {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            const size = 48;
+            const tailH = 14;
+            const total = size + tailH;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = total;
+            const ctx = canvas.getContext('2d');
+
+            // White circle background with green border
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2 - 1, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#059669';
+            ctx.stroke();
+
+            // Clip to circle and draw image
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
+            ctx.clip();
+            // Draw image centered and scaled to fill the circle
+            const imgSize = size - 6;
+            ctx.drawImage(img, 3, 3, imgSize, imgSize);
+            ctx.restore();
+
+            // Pin tail (triangle)
+            ctx.beginPath();
+            ctx.moveTo(size / 2 - 8, size - 2);
+            ctx.lineTo(size / 2, total);
+            ctx.lineTo(size / 2 + 8, size - 2);
+            ctx.fillStyle = '#059669';
+            ctx.fill();
+
+            golfCartMarkerUrl = canvas.toDataURL('image/png');
+            // Re-render map if already loaded
+            if (map && allProperties.length > 0) renderMap();
+        };
+        img.src = 'golf-cart-marker.png';
+    })();
 
     // ========================================================================
     // Initialization
@@ -670,9 +718,9 @@
                 map,
                 title: property.nickname,
                 icon: {
-                    url: 'golf-cart-marker.png',
-                    scaledSize: new google.maps.Size(48, 48),
-                    anchor: new google.maps.Point(24, 48)
+                    url: golfCartMarkerUrl,
+                    scaledSize: new google.maps.Size(52, 64),
+                    anchor: new google.maps.Point(26, 64)
                 }
             });
 
