@@ -618,8 +618,10 @@
             if (dowRoadLabel) dowRoadLabel.close();
         });
 
-        document.getElementById('mapLoadingOverlay').style.display = 'none';
-        if (allProperties.length > 0) renderMap();
+        if (allProperties.length > 0) {
+            renderMap();
+            document.getElementById('mapLoadingOverlay').style.display = 'none';
+        }
     };
 
     // ========================================================================
@@ -657,7 +659,10 @@
 
             updateCount();
             renderList();
-            if (map) renderMap();
+            if (map) {
+                renderMap();
+                document.getElementById('mapLoadingOverlay').style.display = 'none';
+            }
         } catch (e) {
             console.error('Failed to load properties:', e);
             document.getElementById('propertyGrid').innerHTML =
