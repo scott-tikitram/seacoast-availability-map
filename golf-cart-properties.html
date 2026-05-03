@@ -527,7 +527,7 @@
             ctx.fillStyle = 'white';
             ctx.fill();
             ctx.lineWidth = 3;
-            ctx.strokeStyle = '#059669';
+            ctx.strokeStyle = '#0369a1';
             ctx.stroke();
 
             // Clip to circle and draw image
@@ -545,7 +545,7 @@
             ctx.moveTo(size / 2 - 8, size - 2);
             ctx.lineTo(size / 2, total);
             ctx.lineTo(size / 2 + 8, size - 2);
-            ctx.fillStyle = '#059669';
+            ctx.fillStyle = '#0369a1';
             ctx.fill();
 
             golfCartMarkerUrl = canvas.toDataURL('image/png');
@@ -751,8 +751,8 @@
                 title: property.nickname,
                 icon: {
                     url: golfCartMarkerUrl,
-                    scaledSize: new google.maps.Size(52, 64),
-                    anchor: new google.maps.Point(26, 64)
+                    scaledSize: new google.maps.Size(38, 47),
+                    anchor: new google.maps.Point(19, 47)
                 }
             });
 
@@ -781,11 +781,66 @@
 
         if (filteredProperties.length > 0) {
             map.fitBounds(bounds);
-            // Don't zoom in too far for single properties
             google.maps.event.addListenerOnce(map, 'idle', () => {
                 if (map.getZoom() > 15) map.setZoom(15);
             });
         }
+
+        // Draw Dow Road "No Golf Carts" restriction zone
+        drawDowRoadRestriction();
+    }
+
+    let dowRoadPolyline = null;
+    let dowRoadLabel = null;
+
+    function drawDowRoadRestriction() {
+        // Clean up previous
+        if (dowRoadPolyline) dowRoadPolyline.setMap(null);
+        if (dowRoadLabel) dowRoadLabel.setMap(null);
+
+        // Dow Road, Kure Beach — runs east-west from Lake Park Blvd N to Lake Park Blvd S
+        const dowRoadPath = [
+            { lat: 33.98475, lng: -77.91280 },  // Lake Park Blvd N (west end)
+            { lat: 33.98470, lng: -77.91180 },
+            { lat: 33.98465, lng: -77.91060 },
+            { lat: 33.98460, lng: -77.90940 },
+            { lat: 33.98455, lng: -77.90830 },
+            { lat: 33.98450, lng: -77.90700 }   // Lake Park Blvd S (east end)
+        ];
+
+        dowRoadPolyline = new google.maps.Polyline({
+            path: dowRoadPath,
+            geodesic: true,
+            strokeColor: '#dc2626',
+            strokeOpacity: 0.9,
+            strokeWeight: 5,
+            map: map,
+            icons: [{
+                icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeWeight: 2, strokeColor: '#ffffff', scale: 3 },
+                offset: '0',
+                repeat: '16px'
+            }]
+        });
+
+        // Label overlay using InfoWindow anchored to midpoint
+        const midpoint = dowRoadPath[Math.floor(dowRoadPath.length / 2)];
+        dowRoadLabel = new google.maps.InfoWindow({
+            content: '<div style="background:#dc2626;color:white;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap;font-family:-apple-system,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,0.3);">No Golf Carts — Dow Road</div>',
+            position: midpoint,
+            disableAutoPan: true,
+            pixelOffset: new google.maps.Size(0, -8)
+        });
+        dowRoadLabel.open(map);
+
+        // Style the InfoWindow to remove default chrome
+        google.maps.event.addListener(dowRoadLabel, 'domready', () => {
+            const iwOuter = document.querySelector('.gm-style-iw-a');
+            if (iwOuter) {
+                // Hide close button and default background
+                const closeBtn = iwOuter.querySelector('button');
+                if (closeBtn) closeBtn.style.display = 'none';
+            }
+        });
     }
 
     // ========================================================================
