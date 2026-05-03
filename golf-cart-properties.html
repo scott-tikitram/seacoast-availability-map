@@ -99,31 +99,44 @@
             font-weight: 600;
         }
 
-        /* Controls */
+        /* Filters Bar (top) */
         .controls-bar {
             background: white;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-bottom: 1px solid var(--gray-200);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 12px;
             position: sticky;
             top: 68px;
             z-index: 99;
         }
+
+        /* View Toggle (bottom) */
+        .view-toggle-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            padding: 4px;
+        }
         .view-toggle {
             display: flex;
             background: var(--gray-100);
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
         }
         .view-button {
-            padding: 8px 16px;
+            padding: 10px 24px;
             border: none;
             background: transparent;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
             color: var(--gray-500);
             cursor: pointer;
             transition: all 0.2s;
@@ -165,7 +178,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            padding-top: 118px; /* header + controls */
+            padding-top: 114px; /* header + filters */
         }
 
         /* Map */
@@ -195,7 +208,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* List View */
-        .list-view { display: none; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .list-view { display: none; padding: 20px; padding-bottom: 80px; overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; }
         .property-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -390,11 +403,13 @@
             .header-title { font-size: 17px; }
             .header-subtitle { font-size: 13px; }
             .header-count { font-size: 14px; padding: 8px 16px; }
-            .controls-bar { padding: 10px 12px; gap: 10px; flex-wrap: wrap; }
-            .filter-label { font-size: 12px; }
-            .filter-select { font-size: 14px; padding: 10px 12px; }
-            .view-button { font-size: 14px; padding: 10px 18px; }
-            .main-container { padding-top: 108px; }
+            .controls-bar { padding: 8px 10px; gap: 8px; }
+            .filter-group { flex: 1; min-width: 0; }
+            .filter-label { font-size: 11px; }
+            .filter-select { font-size: 14px; padding: 8px 6px; width: 100%; }
+            .view-button { font-size: 14px; padding: 10px 20px; }
+            .main-container { padding-top: 106px; }
+            .view-toggle-bar { bottom: 16px; }
             .property-grid { grid-template-columns: 1fr; gap: 16px; }
             .property-name { font-size: 18px; }
             .property-location { font-size: 14px; }
@@ -428,12 +443,8 @@
         </div>
     </div>
 
-    <!-- Controls -->
+    <!-- Filters Bar (top) -->
     <div class="controls-bar">
-        <div class="view-toggle">
-            <button class="view-button active" data-view="map">Map</button>
-            <button class="view-button" data-view="list">List</button>
-        </div>
         <div class="filter-group">
             <span class="filter-label">Bedrooms</span>
             <select class="filter-select" id="filterBedrooms" onchange="filterProperties()">
@@ -443,6 +454,7 @@
                 <option value="3">3+</option>
                 <option value="4">4+</option>
                 <option value="5">5+</option>
+                <option value="6">6+</option>
             </select>
         </div>
         <div class="filter-group">
@@ -453,18 +465,28 @@
                 <option value="2">2+</option>
                 <option value="3">3+</option>
                 <option value="4">4+</option>
+                <option value="5">5+</option>
             </select>
         </div>
         <div class="filter-group">
             <span class="filter-label">Sleeps</span>
             <select class="filter-select" id="filterSleeps" onchange="filterProperties()">
                 <option value="all">Any</option>
-                <option value="2">2+</option>
                 <option value="4">4+</option>
                 <option value="6">6+</option>
                 <option value="8">8+</option>
                 <option value="10">10+</option>
+                <option value="12">12+</option>
+                <option value="16">16+</option>
             </select>
+        </div>
+    </div>
+
+    <!-- View Toggle (bottom) -->
+    <div class="view-toggle-bar" id="viewToggleBar">
+        <div class="view-toggle">
+            <button class="view-button active" data-view="map">Map</button>
+            <button class="view-button" data-view="list">List</button>
         </div>
     </div>
 
