@@ -639,13 +639,28 @@
 
             // Only electric-allowed carts in Carolina Beach & Kure Beach
             // Exclude inactive/deactivated properties (z-prefix nicknames)
+            // Support both golfCartAllowed boolean and golfCartPolicy text (fallback if boolean is null)
             const ALLOWED_CITIES = ['Carolina Beach', 'Kure Beach'];
-            allProperties = properties.filter(p =>
-                p.address?.lat && p.address?.lng &&
-                p.nickname && !p.nickname.startsWith('z') && !p.nickname.startsWith('!') &&
-                ALLOWED_CITIES.includes(p.address?.city) &&
-                !(/gas.powered|gas only|no electri/i.test(p.golfCartPolicy || ''))
-            );
+            allProperties = properties.filter(p => {
+                if (!p.address?.lat || !p.address?.lng) return false;
+                if (!p.nickname || p.nickname.startsWith('z') || p.nickname.startsWith('!')) return false;
+                if (!ALLOWED_CITIES.includes(p.address?.city)) return false;
+
+                // Check if golf carts allowed — use boolean if available, else parse policy text
+                const policy = p.golfCartPolicy || '';
+                if (p.golfCartAllowed === true) {
+                    // Boolean says allowed — but exclude gas-only
+                    return !(/gas.powered|gas only|no electri/i.test(policy));
+                } else if (p.golfCartAllowed === false) {
+                    return false;
+                } else {
+                    // Null boolean — fall back to policy text
+                    if (!policy) return false;
+                    if (/prohibit|not allowed|no golf/i.test(policy)) return false;
+                    if (/gas.powered|gas only|no electri/i.test(policy)) return false;
+                    return true;
+                }
+            });
 
             // Sort by city then name
             allProperties.sort((a, b) => {
@@ -661,10 +676,13 @@
             renderList();
             if (map) {
                 renderMap();
-                document.getElementById('mapLoadingOverlay').style.display = 'none';
             }
+            const overlay = document.getElementById('mapLoadingOverlay');
+            if (overlay) overlay.style.display = 'none';
         } catch (e) {
             console.error('Failed to load properties:', e);
+            const overlay = document.getElementById('mapLoadingOverlay');
+            if (overlay) overlay.style.display = 'none';
             document.getElementById('propertyGrid').innerHTML =
                 '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#6b7280;">Failed to load properties. Please try again.</div>';
         }
