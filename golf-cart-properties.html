@@ -78,17 +78,21 @@
         .header-logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
-        .header-logo img { height: 36px; }
+        .header-logo-frame {
+            background: white;
+            padding: 6px 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-logo-frame img { height: 36px; display: block; }
         .header-title {
             font-size: 18px;
             font-weight: 600;
             color: white;
-        }
-        .header-subtitle {
-            font-size: 12px;
-            color: rgba(255,255,255,0.7);
         }
         .header-count {
             background: rgba(255,255,255,0.2);
@@ -400,8 +404,9 @@
         /* Responsive */
         @media (max-width: 768px) {
             .header { padding: 12px 16px; }
-            .header-title { font-size: 17px; }
-            .header-subtitle { font-size: 13px; }
+            .header-title { font-size: 16px; }
+            .header-logo-frame { padding: 4px 8px; border-radius: 8px; }
+            .header-logo-frame img { height: 30px; }
             .header-count { font-size: 14px; padding: 8px 16px; }
             .controls-bar { padding: 8px 10px; gap: 8px; }
             .filter-group { flex: 1; min-width: 0; }
@@ -433,11 +438,10 @@
     <div class="header">
         <div class="header-content">
             <div class="header-logo">
-                <img src="seacoastrentalslogo.png" alt="Sea Coast Rentals">
-                <div>
-                    <div class="header-title">Golf Cart Friendly Properties</div>
-                    <div class="header-subtitle">Carolina Beach &amp; Kure Beach — Sea Coast Rentals</div>
+                <div class="header-logo-frame">
+                    <img src="seacoastrentalslogo.png" alt="Sea Coast Rentals">
                 </div>
+                <div class="header-title">Golf Cart Friendly Properties</div>
             </div>
             <span class="header-count" id="propertyCount">Loading...</span>
         </div>
