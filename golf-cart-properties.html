@@ -585,6 +585,13 @@
             ]
         });
         infoWindow = new google.maps.InfoWindow();
+
+        // Click anywhere on map dismisses open popups
+        map.addListener('click', () => {
+            infoWindow.close();
+            if (dowRoadLabel) dowRoadLabel.close();
+        });
+
         document.getElementById('mapLoadingOverlay').style.display = 'none';
         if (allProperties.length > 0) renderMap();
     };
@@ -833,6 +840,13 @@
             { lat: 34.0013000, lng: -77.9151800 },
             { lat: 34.0005200, lng: -77.9154500 },
             { lat: 34.0003400, lng: -77.9154800 },
+            // Dow Rd S becomes K Avenue — continue to S 7th Ave
+            { lat: 34.0001500, lng: -77.9153000 },
+            { lat: 34.0000200, lng: -77.9147200 },
+            { lat: 33.9998700, lng: -77.9140700 },
+            { lat: 33.9995100, lng: -77.9124100 },
+            { lat: 33.9993700, lng: -77.9118200 },
+            { lat: 33.9991400, lng: -77.9107700 },  // K Ave & S 7th Ave
         ];
 
         dowRoadPolyline = new google.maps.Polyline({
