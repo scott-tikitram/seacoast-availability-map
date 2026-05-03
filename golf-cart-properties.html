@@ -798,23 +798,19 @@
         if (dowRoadPolyline) dowRoadPolyline.setMap(null);
         if (dowRoadLabel) dowRoadLabel.setMap(null);
 
-        // Dow Road — runs from N Lake Park Blvd (Carolina Beach) southwest to Dow Rd S (Kure Beach)
+        // Dow Road — full path from N Lake Park Blvd through Dow Rd N and Dow Rd S
         // Coordinates from Google Directions API
         const dowRoadPath = [
-            { lat: 34.0477000, lng: -77.8997000 },  // N Lake Park Blvd intersection
+            // Dow Rd N — from N Lake Park Blvd southwest
+            { lat: 34.0477000, lng: -77.8997000 },
             { lat: 34.0473900, lng: -77.9000900 },
             { lat: 34.0469600, lng: -77.9005600 },
             { lat: 34.0462800, lng: -77.9013500 },
             { lat: 34.0453400, lng: -77.9024600 },
-            { lat: 34.0449400, lng: -77.9029300 },
             { lat: 34.0445600, lng: -77.9033500 },
-            { lat: 34.0442200, lng: -77.9037200 },
             { lat: 34.0438300, lng: -77.9040800 },
-            { lat: 34.0434400, lng: -77.9043800 },
             { lat: 34.0431200, lng: -77.9045900 },
-            { lat: 34.0426100, lng: -77.9048700 },
             { lat: 34.0423500, lng: -77.9050000 },
-            { lat: 34.0419600, lng: -77.9051400 },
             { lat: 34.0411400, lng: -77.9053700 },
             { lat: 34.0400100, lng: -77.9057000 },
             { lat: 34.0376100, lng: -77.9064300 },
@@ -822,10 +818,21 @@
             { lat: 34.0330200, lng: -77.9081200 },
             { lat: 34.0299600, lng: -77.9092600 },
             { lat: 34.0228100, lng: -77.9119300 },
-            { lat: 34.0214800, lng: -77.9124200 },
-            { lat: 34.0212100, lng: -77.9124900 },
             { lat: 34.0208700, lng: -77.9125500 },
-            { lat: 34.0189000, lng: -77.9128000 }   // Dow Rd S terminus
+            { lat: 34.0189000, lng: -77.9128000 },
+            // Dow Rd S — continues south to K Avenue
+            { lat: 34.0167600, lng: -77.9130500 },
+            { lat: 34.0151100, lng: -77.9132400 },
+            { lat: 34.0126400, lng: -77.9135300 },
+            { lat: 34.0101100, lng: -77.9138300 },
+            { lat: 34.0088600, lng: -77.9139700 },
+            { lat: 34.0065100, lng: -77.9142400 },
+            { lat: 34.0049000, lng: -77.9144300 },
+            { lat: 34.0037300, lng: -77.9145600 },
+            { lat: 34.0025400, lng: -77.9147800 },
+            { lat: 34.0013000, lng: -77.9151800 },
+            { lat: 34.0005200, lng: -77.9154500 },
+            { lat: 34.0003400, lng: -77.9154800 },
         ];
 
         dowRoadPolyline = new google.maps.Polyline({
@@ -842,24 +849,15 @@
             }]
         });
 
-        // Label overlay using InfoWindow anchored to midpoint
-        const midpoint = dowRoadPath[Math.floor(dowRoadPath.length / 2)];
-        dowRoadLabel = new google.maps.InfoWindow({
-            content: '<div style="background:#dc2626;color:white;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap;font-family:-apple-system,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,0.3);">No Golf Carts — Dow Road</div>',
-            position: midpoint,
-            disableAutoPan: true,
-            pixelOffset: new google.maps.Size(0, -8)
-        });
-        dowRoadLabel.open(map);
-
-        // Style the InfoWindow to remove default chrome
-        google.maps.event.addListener(dowRoadLabel, 'domready', () => {
-            const iwOuter = document.querySelector('.gm-style-iw-a');
-            if (iwOuter) {
-                // Hide close button and default background
-                const closeBtn = iwOuter.querySelector('button');
-                if (closeBtn) closeBtn.style.display = 'none';
-            }
+        // Show label only when polyline is clicked/tapped
+        dowRoadPolyline.addListener('click', (e) => {
+            if (dowRoadLabel) dowRoadLabel.close();
+            dowRoadLabel = new google.maps.InfoWindow({
+                content: '<div style="background:#dc2626;color:white;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;font-family:-apple-system,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.3);">No Golf Carts — Dow Road</div>',
+                position: e.latLng,
+                disableAutoPan: true
+            });
+            dowRoadLabel.open(map);
         });
     }
 
