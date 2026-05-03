@@ -798,14 +798,34 @@
         if (dowRoadPolyline) dowRoadPolyline.setMap(null);
         if (dowRoadLabel) dowRoadLabel.setMap(null);
 
-        // Dow Road, Kure Beach — runs east-west from Lake Park Blvd N to Lake Park Blvd S
+        // Dow Road — runs from N Lake Park Blvd (Carolina Beach) southwest to Dow Rd S (Kure Beach)
+        // Coordinates from Google Directions API
         const dowRoadPath = [
-            { lat: 33.98475, lng: -77.91280 },  // Lake Park Blvd N (west end)
-            { lat: 33.98470, lng: -77.91180 },
-            { lat: 33.98465, lng: -77.91060 },
-            { lat: 33.98460, lng: -77.90940 },
-            { lat: 33.98455, lng: -77.90830 },
-            { lat: 33.98450, lng: -77.90700 }   // Lake Park Blvd S (east end)
+            { lat: 34.0477000, lng: -77.8997000 },  // N Lake Park Blvd intersection
+            { lat: 34.0473900, lng: -77.9000900 },
+            { lat: 34.0469600, lng: -77.9005600 },
+            { lat: 34.0462800, lng: -77.9013500 },
+            { lat: 34.0453400, lng: -77.9024600 },
+            { lat: 34.0449400, lng: -77.9029300 },
+            { lat: 34.0445600, lng: -77.9033500 },
+            { lat: 34.0442200, lng: -77.9037200 },
+            { lat: 34.0438300, lng: -77.9040800 },
+            { lat: 34.0434400, lng: -77.9043800 },
+            { lat: 34.0431200, lng: -77.9045900 },
+            { lat: 34.0426100, lng: -77.9048700 },
+            { lat: 34.0423500, lng: -77.9050000 },
+            { lat: 34.0419600, lng: -77.9051400 },
+            { lat: 34.0411400, lng: -77.9053700 },
+            { lat: 34.0400100, lng: -77.9057000 },
+            { lat: 34.0376100, lng: -77.9064300 },
+            { lat: 34.0365500, lng: -77.9067900 },
+            { lat: 34.0330200, lng: -77.9081200 },
+            { lat: 34.0299600, lng: -77.9092600 },
+            { lat: 34.0228100, lng: -77.9119300 },
+            { lat: 34.0214800, lng: -77.9124200 },
+            { lat: 34.0212100, lng: -77.9124900 },
+            { lat: 34.0208700, lng: -77.9125500 },
+            { lat: 34.0189000, lng: -77.9128000 }   // Dow Rd S terminus
         ];
 
         dowRoadPolyline = new google.maps.Polyline({
