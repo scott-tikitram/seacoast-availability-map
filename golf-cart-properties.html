@@ -573,9 +573,11 @@
             const properties = data.properties || [];
 
             // Only electric-allowed carts in Carolina Beach & Kure Beach
+            // Exclude inactive/deactivated properties (z-prefix nicknames)
             const ALLOWED_CITIES = ['Carolina Beach', 'Kure Beach'];
             allProperties = properties.filter(p =>
                 p.address?.lat && p.address?.lng &&
+                p.nickname && !p.nickname.startsWith('z') && !p.nickname.startsWith('!') &&
                 ALLOWED_CITIES.includes(p.address?.city) &&
                 !(/gas.powered|gas only|no electri/i.test(p.golfCartPolicy || ''))
             );
