@@ -47,11 +47,16 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f5f7fa;
             color: #2d3748;
-            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         /* Header */
@@ -155,14 +160,18 @@
 
         /* Main Container */
         .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding-top: 118px; /* header + controls */
         }
 
         /* Map */
         #map {
             width: 100%;
-            height: calc(100vh - 130px);
+            height: 100%;
             position: relative;
         }
         .map-loading-overlay {
@@ -186,7 +195,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* List View */
-        .list-view { display: none; padding: 20px; }
+        .list-view { display: none; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .property-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -379,7 +388,7 @@
         @media (max-width: 768px) {
             .header-title { font-size: 15px; }
             .property-grid { grid-template-columns: 1fr; }
-            #map { height: calc(100vh - 120px); }
+            .main-container { padding-top: 108px; }
             .modal { width: 95%; }
         }
     </style>
@@ -546,6 +555,7 @@
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 33.9700, lng: -77.9100 },
             zoom: 13,
+            gestureHandling: 'greedy',
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
